@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>tron films</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400..500&display=swap">
+<style>
+/* Layout: full-bleed film frames, a sticky horizontal reel driven by vertical scroll, a paper closing block. Single dark look by choice. */
+:root{
+  --ink:#141414; --ink-2:#1c1c1c; --paper:#f3f2ee; --acc:#e4472b;
+  --mute:#8a8882; --dim:#6e6c67; --soft:#cfcdc6; --line:rgba(243,242,238,.16);
+  --paper-mute:#5c5c5c; --paper-line:rgba(20,20,20,.14);
+  --display:'Bricolage Grotesque', 'Helvetica Neue', Arial, sans-serif;
+  --read:'Newsreader', Georgia, 'Times New Roman', serif;
+  --gut:clamp(16px, 2.8vw, 40px);
+  --gl:max(var(--gut), env(safe-area-inset-left, 0px));
+  --gr:max(var(--gut), env(safe-area-inset-right, 0px));
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ink);color:var(--paper);font-family:var(--display);font-size:16px;line-height:1.4;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+img{display:block;max-width:100%}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+[hidden]{display:none!important}
+#ft:focus{outline:none}
+.lbl{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (hover:hover) and (pointer:fine){html.cc,html.cc *{cursor:none!important}}
+.cur{position:fixed;left:0;top:0;z-index:100;pointer-events:none;width:0;height:0;opacity:0;transition:opacity .2s}
+.cur.on{opacity:1}
+.cur i{position:absolute;left:-9px;top:-9px;width:18px;height:18px;border-radius:52% 48% 55% 45%;background:var(--acc);transition:background-color .25s}
+.cur.hot{mix-blend-mode:difference}
+
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--ink)}
+
+/* header */
+.top{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:18px var(--gr) 18px var(--gl);color:var(--paper);transition:color .3s;pointer-events:none}
+.top > *{pointer-events:auto}
+.top.light{color:var(--ink)}
+.logo{transition:opacity .35s,visibility .35s}
+.top.light .logo,.top.end .logo{opacity:0;visibility:hidden}
+.logo{display:inline-flex;align-items:baseline;min-height:44px;padding-top:9px;font-size:28px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.lf{display:inline-grid;grid-template-columns:0fr;transition:grid-template-columns .5s cubic-bezier(.65,0,.2,1)}
+.lf span{overflow:hidden;white-space:nowrap;font-weight:300;letter-spacing:-.02em;padding-left:.22em;opacity:0;transition:opacity .4s .1s}
+.logo:hover .lf,.logo:focus-visible .lf{grid-template-columns:1fr}
+.logo:hover .lf span,.logo:focus-visible .lf span{opacity:1}
+.back{display:none;align-items:center;gap:10px;min-height:44px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.back .ar{color:var(--acc);font-size:17px;letter-spacing:0;transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.back:hover .ar{transform:translateX(-5px)}
+body[data-view="ficha"] .logo{display:none}
+body[data-view="ficha"] .back{display:inline-flex}
+.menubtn{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.bars{display:inline-flex;flex-direction:column;gap:4px}.bars i{display:block;width:20px;height:1.5px;background:currentColor}
+
+/* menu */
+.menu{position:fixed;inset:0;z-index:30;display:flex;justify-content:flex-end}
+.menu[hidden]{display:none!important}
+.scrim{flex:1 1 auto;background:rgba(20,20,20,.55);animation:fade .4s ease both}
+.panel{flex:0 1 440px;min-width:0;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;justify-content:space-between;padding:calc(18px + env(safe-area-inset-top,0px)) var(--gr) calc(32px + env(safe-area-inset-bottom,0px)) clamp(24px,4vw,48px);animation:slide .5s cubic-bezier(.65,0,.2,1) both}
+.panel .close{align-self:flex-end;display:inline-flex;align-items:center;gap:10px;min-height:44px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.panel nav{display:flex;flex-direction:column;gap:6px}
+.panel nav a{display:flex;align-items:center;gap:14px;font-size:clamp(36px,5vw,52px);font-weight:800;letter-spacing:-.04em;line-height:1.1}
+.panel nav a::before{content:"";width:12px;height:12px;border-radius:52% 48% 55% 45%;background:var(--acc);transform:scale(0);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.panel nav a:hover::before,.panel nav a:focus-visible::before{transform:scale(1)}
+.panel .mfoot{display:flex;flex-direction:column;gap:6px;font-size:15px;color:var(--paper-mute)}
+@keyframes slide{from{transform:translateX(100%)}to{transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+/* hero */
+.hero{position:relative;height:100svh;min-height:560px;overflow:hidden;background:var(--ink-2)}
+.clip{position:absolute;inset:0;opacity:0;transition:opacity .6s ease}
+.clip.on{opacity:1}
+.clip{--fx:50%;--fy:50%}
+.clip img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:var(--fx) var(--fy)}
+.clip.run img{animation:focus 3s cubic-bezier(.45,0,.2,1) both}
+@keyframes focus{0%,6%{filter:blur(24px) saturate(1.05);transform:scale(1.06)}16%{filter:blur(7px)}22%{filter:blur(12px)}30%,100%{filter:blur(0) saturate(1.05);transform:scale(1)}}
+.vf{position:absolute;left:var(--fx);top:var(--fy);width:240px;height:160px;transition:left .4s,top .4s;transform:translate(-50%,-50%);pointer-events:none}
+.clip.run .vf{animation:af 3s cubic-bezier(.45,0,.2,1) both}
+@keyframes af{0%,6%{width:300px;height:200px}16%{width:228px;height:152px}22%{width:262px;height:174px}30%,100%{width:240px;height:160px}}
+.vf i,.br i{position:absolute;width:26px;height:26px;border:0 solid var(--paper)}
+.c1{top:-1px;left:-1px;border-top-width:2px!important;border-left-width:2px!important}
+.c2{top:-1px;right:-1px;border-top-width:2px!important;border-right-width:2px!important}
+.c3{bottom:-1px;left:-1px;border-bottom-width:2px!important;border-left-width:2px!important}
+.c4{bottom:-1px;right:-1px;border-bottom-width:2px!important;border-right-width:2px!important}
+.vf b,.br b{position:absolute;left:50%;top:50%;background:rgba(243,242,238,.8)}
+.vf b:first-of-type,.br b:first-of-type{width:10px;height:1px;margin-left:-5px}
+.vf b:last-of-type,.br b:last-of-type{width:1px;height:10px;margin-top:-5px}
+.shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(20,20,20,.35) 0%,rgba(20,20,20,0) 22%,rgba(20,20,20,0) 70%,rgba(20,20,20,.55) 100%),linear-gradient(270deg,rgba(20,20,20,.5) 0%,rgba(20,20,20,.25) 35%,rgba(20,20,20,0) 60%)}
+.htw{position:absolute;left:var(--gl);right:var(--gr);bottom:clamp(170px,36vh,340px);display:flex;justify-content:flex-end}
+.htw .quote{max-width:620px;text-align:right}
+.quote{margin:0;font-size:clamp(28px,3.4vw,46px);font-weight:300;letter-spacing:-.04em;line-height:1.05;text-wrap:balance;text-shadow:0 1px 28px rgba(20,20,20,.35);animation:qin 1.4s cubic-bezier(.2,.7,.2,1) .4s both}
+@keyframes qin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.ht{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:flex-start;gap:14px;opacity:0;filter:blur(12px);transition:opacity .9s ease,filter 1.1s cubic-bezier(.45,0,.2,1);pointer-events:none;text-shadow:0 1px 28px rgba(20,20,20,.35)}
+.ht.on{opacity:1;filter:none;pointer-events:auto}
+.ht .place{color:#dcdad4}
+.ht h2{margin:0;font-size:clamp(36px,5.2vw,64px);font-weight:800;letter-spacing:-.045em;line-height:.98;text-wrap:balance}
+.more{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.more .ar{color:var(--acc);font-size:17px;letter-spacing:0;transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.more:hover .ar{transform:translateX(6px)}
+
+/* projects reel */
+.proj{position:relative}
+.stick{position:sticky;top:0;height:100svh;min-height:560px;overflow:hidden;display:flex;flex-direction:column}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:clamp(96px,14vh,130px) var(--gr) 30px var(--gl)}
+.proj h2{margin:0;display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);line-height:1}
+.proj h2 .dot{width:10px;height:10px}
+.pc{display:flex;align-items:baseline;gap:.35em;font-size:13px;font-weight:600;letter-spacing:.08em;line-height:1;font-variant-numeric:tabular-nums}
+.pc .win{display:inline-block;height:1em;overflow:hidden;color:var(--acc)}
+.pc .roll{display:flex;flex-direction:column;transition:transform .6s cubic-bezier(.65,0,.2,1)}
+.pc .roll span{height:1em;line-height:1}
+.pc .of{color:var(--dim)}
+.cnt{display:inline-block;vertical-align:top;margin-left:.35em;font-size:14px;font-weight:600;letter-spacing:.06em;color:var(--acc);transform:translateY(.55em)}
+.viewport{padding-left:var(--gl)}
+.track{display:flex;align-items:flex-start;gap:28px;will-change:transform}
+.card{--f:0;flex:0 0 var(--cw);width:var(--cw);display:flex;flex-direction:column;gap:18px;text-align:left}
+.card .im{position:relative;display:block;aspect-ratio:16/9;overflow:hidden;background:var(--ink-2)}
+.card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(calc((1 - var(--f)) * 12px)) saturate(calc(.35 + .7 * var(--f))) brightness(calc(.7 + .3 * var(--f)));transform:scale(calc(1.08 - .08 * var(--f)))}
+.card .im{--fx:50%;--fy:50%}
+.card img{transform-origin:var(--fx) var(--fy)}
+.br{position:absolute;left:var(--fx);top:var(--fy);width:calc(60% - 28% * var(--f));height:calc(60% - 28% * var(--f));transform:translate(-50%,-50%);opacity:calc(var(--f) * 1.4 - .4);pointer-events:none}
+.br i{width:22px;height:22px}
+.card .tx{display:flex;flex-direction:column;gap:10px;opacity:calc(.35 + .65 * var(--f))}
+.card .row1{display:flex;align-items:baseline;gap:14px}
+.card .tteam{margin-left:auto;flex:none;padding-left:16px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+.card .num{font-size:13px;font-weight:600;letter-spacing:.06em;color:color-mix(in srgb, var(--acc) calc(var(--f) * 100%), var(--dim))}
+.card .ttl{font-size:clamp(22px,2.3vw,30px);font-weight:700;letter-spacing:-.025em;line-height:1.08}
+.card .meta{display:flex;flex-wrap:wrap;column-gap:14px;row-gap:4px;padding-left:33px;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#9c9a94}
+.card:hover .ttl{text-decoration:underline;text-decoration-color:var(--acc);text-decoration-thickness:2px;text-underline-offset:6px}
+.scale{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));width:min(380px,78vw);transform:translateX(-50%)}
+.scale .win{position:relative;height:38px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 22%,#000 78%,transparent 100%);mask-image:linear-gradient(90deg,transparent 0%,#000 22%,#000 78%,transparent 100%)}
+.ticks{position:absolute;left:0;top:0;height:38px;display:flex;align-items:flex-start;will-change:transform}
+.tk{--f:0;position:relative;flex:none;width:9px;height:38px}
+.tk i{position:absolute;left:0;top:0;width:1px;height:6px;background:var(--paper);opacity:.4}
+.tk.mj i{height:calc(11px + 5px * var(--f));opacity:1;background:color-mix(in srgb, var(--acc) calc(var(--f) * 100%), #8a8882)}
+.tk span{position:absolute;left:-20px;width:40px;top:21px;text-align:center;font-size:10px;font-weight:600;color:color-mix(in srgb, var(--paper) calc(var(--f) * 100%), var(--dim));transform:scale(calc(1 + .25 * var(--f)))}
+.scale .idx{position:absolute;left:50%;top:-8px;margin-left:-4px;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid var(--acc)}
+
+/* contact */
+.contact{background:var(--paper);color:var(--ink);padding:clamp(56px,8vw,72px) var(--gr) 0 var(--gl)}
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:center;padding-bottom:clamp(40px,6vw,64px)}
+.contact h2{margin:0 0 22px;display:flex;align-items:center;gap:12px;font-size:26px;font-weight:700;letter-spacing:-.02em}
+.dot{flex:none;width:11px;height:11px;border-radius:52% 48% 55% 45%;background:var(--acc)}
+.box{position:relative;display:inline-flex;align-items:center;gap:18px;padding:18px 34px 22px;max-width:100%}
+.box .br2{position:absolute;inset:0;pointer-events:none}
+.box .br2 i{position:absolute;width:22px;height:22px;border:0 solid var(--ink);transition:width .4s,height .4s}
+.box:hover .br2 i{width:32px;height:32px}
+.mail{margin:0;font-size:clamp(20px,2.2vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.2;user-select:all;overflow-wrap:break-word}
+.copy{flex:none;min-height:36px;padding:0 12px;border:1px solid var(--paper-line);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-mute);transition:border-color .3s,color .3s}
+.copy:hover{border-color:var(--ink);color:var(--ink)}
+.tel{margin:8px 0 0;font-size:clamp(18px,1.8vw,22px);font-weight:400;color:#3a3a3a;user-select:all}
+.mark{display:flex;flex-direction:column;align-items:center;gap:22px;padding-right:clamp(0px,8vw,140px)}
+.mark svg{display:block;width:clamp(150px,17vw,240px);height:auto;color:var(--ink);--crack:var(--paper)}
+.wm{display:flex;align-items:baseline;gap:.22em;font-size:clamp(22px,2vw,28px);line-height:1}
+.wm b{font-weight:800;letter-spacing:-.045em}.wm span{font-weight:300}
+.rg{transform-box:fill-box;transform-origin:center}
+.contact.play .band{animation:band 1.3s cubic-bezier(.2,.7,.2,1) .3s both}
+.contact.play .r1{animation:grow 1.1s cubic-bezier(.2,.7,.2,1) .7s both}
+.contact.play .r2{animation:grow 1.1s cubic-bezier(.2,.7,.2,1) .95s both}
+.contact.play .r3{animation:grow 1.1s cubic-bezier(.2,.7,.2,1) 1.2s both}
+.contact.play .r4{animation:grow 1.1s cubic-bezier(.2,.7,.2,1) 1.45s both}
+.contact.play .r5{animation:grow 1.1s cubic-bezier(.2,.7,.2,1) 1.7s both}
+.contact.play .crack{animation:crack .8s cubic-bezier(.2,.7,.2,1) 2.3s both}
+@keyframes grow{from{transform:scale(0);opacity:0}to{transform:none;opacity:1}}
+@keyframes band{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@keyframes crack{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px 24px;min-height:60px;padding-block:14px calc(14px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--paper-line);font-size:13px;color:var(--paper-mute)}
+.foot nav{display:flex;gap:24px}.foot a:hover{color:var(--ink)}
+
+/* ficha */
+.ficha{display:grid;grid-template-columns:57fr 43fr;min-height:100svh}
+.fimg{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--ink-2)}
+.fimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;filter:blur(22px);transform:scale(1.06);transition:opacity .7s ease,filter 1.1s cubic-bezier(.45,0,.2,1),transform 1.4s cubic-bezier(.45,0,.2,1)}
+.fimg img.on{opacity:1;filter:none;transform:none}
+.fimg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,20,20,.45) 0%,rgba(20,20,20,0) 20%);pointer-events:none}
+.thumbs{position:absolute;left:var(--gl);bottom:calc(32px + env(safe-area-inset-bottom,0px));z-index:1;display:flex;gap:10px}
+.th{position:relative;width:96px;aspect-ratio:16/9;overflow:hidden;background:var(--ink-2);opacity:.5;transition:opacity .3s}
+.th:hover{opacity:.85}.th.on{opacity:1}
+.th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.th i{position:absolute;width:8px;height:8px;border:0 solid var(--paper);opacity:0;transition:opacity .3s}
+.th.on i{opacity:1}
+.dots{display:none}
+.ftext{display:flex;flex-direction:column;min-height:100svh;padding:130px var(--gr) calc(32px + env(safe-area-inset-bottom,0px)) clamp(28px,4vw,60px);min-width:0}
+.fnum{display:flex;align-items:center;flex-wrap:wrap;gap:14px;font-size:13px;font-weight:600;letter-spacing:.06em}
+.fnum .n{color:var(--acc)}.fnum .of{color:var(--dim)}
+#fteam{color:var(--acc)}
+.ftext h1{margin:18px 0 0;font-size:clamp(30px,3.4vw,46px);font-weight:800;letter-spacing:-.04em;line-height:1.02;text-wrap:balance}
+.note{margin-top:12px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:var(--soft)}
+.note .dot{width:7px;height:7px}
+.facts{margin:24px 0 0;display:grid;grid-template-columns:120px minmax(0,1fr);row-gap:10px;column-gap:16px;align-items:baseline}
+.facts dt{font-size:11px}.facts dd{margin:0;font-size:16px;font-weight:500}
+.syn{margin:24px 0 0;max-width:62ch;font-family:var(--read);font-size:19px;line-height:1.5;color:#dcdad4}
+.btn{margin-top:26px;align-self:flex-start;display:inline-flex;align-items:center;gap:12px;min-height:46px;padding:0 20px;border:1px solid rgba(243,242,238,.4);font-size:14px;font-weight:600;transition:background .3s,color .3s,border-color .3s}
+.btn .ar{color:var(--acc);transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.btn:hover{background:var(--paper);color:var(--ink);border-color:var(--paper)}.btn:hover .ar{transform:translate(3px,-3px)}
+.pn{margin-top:auto;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:24px}
+.pn button{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:48%;text-align:left}
+.pn button:last-child{align-items:flex-end;text-align:right}
+.pn .t{font-size:18px;font-weight:700;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pn .ar{color:var(--acc);display:inline-block;transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.pn button:first-child:hover .ar{transform:translateX(-6px)}.pn button:last-child:hover .ar{transform:translateX(6px)}
+.ftext > *:not(.pn){animation:fin .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes fin{from{opacity:.0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* equipo */
+.team{min-height:100svh;padding:clamp(110px,14vh,150px) var(--gr) 80px var(--gl)}
+.team header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px 40px;margin-bottom:clamp(40px,7vh,70px)}
+.team h1{margin:0;font-weight:300;font-size:clamp(44px,5.4vw,72px);letter-spacing:-.045em;line-height:1}
+.team header p{margin:0;max-width:440px;font-family:var(--read);font-size:19px;line-height:1.45;color:var(--soft)}
+.people{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,210px));justify-content:center;column-gap:clamp(24px,5vw,72px);row-gap:40px}
+.person{display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center}
+.person svg{display:block;width:100%;height:auto;overflow:visible;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.person:hover svg{transform:rotate(-4deg) scale(1.02)}
+.person .ph{transform-origin:center;transform-box:fill-box;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.person:hover .ph{transform:scale(1.06)}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes pop{from{opacity:0}to{opacity:1}}
+.pname{font-size:20px;font-weight:700;letter-spacing:-.02em}
+
+[data-view]:not([data-view="home"]) #home,
+body:not([data-view="ficha"]) #ficha,
+body:not([data-view="equipo"]) #equipo{display:none}
+
+.tip{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:50;max-width:calc(100% - 32px);padding:12px 16px;background:var(--paper);color:var(--ink);font-size:14px;font-weight:600;user-select:all}
+@media (max-width:760px){
+  .htw{bottom:30%}
+  .vf{width:180px;height:120px}
+  @keyframes af{0%,6%{width:230px;height:154px}16%{width:168px;height:112px}22%{width:196px;height:130px}30%,100%{width:180px;height:120px}}
+  .track{gap:18px}
+  .card .meta{padding-left:0}
+  .card .row1{flex-direction:column;gap:4px}
+  .card .im{aspect-ratio:4/5;max-height:52svh}
+  .card img{object-position:var(--fx) var(--fy)}
+  .card .tteam{margin-left:0;padding-left:0}
+  .cgrid{grid-template-columns:1fr}
+  .mark{flex-direction:row;justify-content:flex-start;gap:18px;padding:0}
+  .mark svg{width:96px}
+  .ficha{grid-template-columns:1fr;min-height:0}
+  .fimg{position:relative;height:300px}
+  .thumbs{display:none}
+  .dots{display:flex;position:absolute;left:0;right:0;bottom:4px;justify-content:center;z-index:1}
+  .dots button{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+  .dots span{display:block;width:7px;height:7px;border-radius:50%;background:rgba(243,242,238,.45);transition:width .3s,background .3s}
+  .dots button.on span{width:22px;border-radius:4px;background:var(--paper)}
+  .ftext{min-height:0;padding:16px var(--gr) calc(84px + env(safe-area-inset-bottom,0px)) var(--gl)}
+  .ftext h1{margin-top:8px;font-size:28px}
+  .note{margin-top:8px;font-size:13px}
+  .facts{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);grid-template-columns:92px minmax(0,1fr);row-gap:6px}
+  .facts dd{font-size:14px}
+  .syn{margin-top:14px;font-size:16px;line-height:1.45}
+  .btn{margin-top:16px;align-self:stretch;justify-content:center}
+  .pn{position:fixed;left:0;right:0;bottom:0;z-index:15;margin:0;padding:10px var(--gr) calc(10px + env(safe-area-inset-bottom,0px)) var(--gl);background:rgba(20,20,20,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .pn .t{font-size:14px}
+  .people{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pname{font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}
+}
+.menubtn{display:none!important} /* menú oculto de momento */
+</style>
+
+<div class="cur" id="cur" aria-hidden="true"><i></i></div>
+<header class="top" id="top">
+  <a class="logo" href="#inicio" data-go="home" aria-label="tron films, inicio"><span aria-hidden="true">tron</span><span class="lf" aria-hidden="true"><span>films</span></span></a>
+  <a class="back" href="#proyectos" data-go="back"><span class="ar" aria-hidden="true">←</span>Volver a proyectos</a>
+  <button class="menubtn" type="button" id="menubtn" aria-haspopup="dialog" aria-controls="menu">Menú<span class="bars" aria-hidden="true"><i></i><i></i></span></button>
+</header>
+
+<div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menú" hidden>
+  <button class="scrim" type="button" aria-label="Cerrar menú" data-close></button>
+  <div class="panel">
+    <button class="close" type="button" data-close>Cerrar<span aria-hidden="true" style="font-size:22px;letter-spacing:0">×</span></button>
+    <nav aria-label="Principal">
+      <a href="#proyectos" data-go="proyectos">Proyectos</a>
+      <a href="#equipo" data-go="equipo">Equipo</a>
+      <a href="#contacto" data-go="contacto">Contacto</a>
+    </nav>
+    <div class="mfoot"><span class="lbl" style="color:inherit">Escríbenos</span><span>azaniaproducciones@gmail.com</span></div>
+  </div>
+</div>
+
+<main id="home">
+  <section class="hero" id="inicio" aria-label="Proyectos destacados">
+    <div id="clips"></div>
+    <div class="shade" aria-hidden="true"></div>
+    <div class="htw"><p class="quote">Aquí una frase que nos presente</p></div>
+  </section>
+
+  <section class="proj" id="proyectos" aria-labelledby="ph">
+    <div class="stick">
+      <div class="phead"><h2 id="ph"><span class="dot" aria-hidden="true"></span>Proyectos</h2><span class="pc" aria-hidden="true"><span class="win"><span class="roll" id="pcroll"></span></span><span class="of" id="pcof"></span></span></div>
+      <div class="viewport"><div class="track" id="track"></div></div>
+      <div class="scale" aria-hidden="true"><div class="win"><div class="ticks" id="ticks"></div></div><div class="idx"></div></div>
+    </div>
+  </section>
+
+  <section class="contact" id="contacto" aria-labelledby="ch">
+    <div class="cgrid">
+      <div>
+        <h2 id="ch"><span class="dot" aria-hidden="true"></span>Contáctanos</h2>
+        <p class="mail" id="mail">azaniaproducciones@<wbr>gmail.com</p>
+      </div>
+      <div class="mark">
+        <svg viewBox="-52 -52 104 104" aria-hidden="true"><path class="rg band" d="M51,0C51.4 3.3 51 7 50.4 10C49.7 13.3 48.4 16.5 47 19.4C45.3 22.3 43.3 25 41.3 27.6C39 30 37 32.4 34.6 34.6C32 36.7 29.6 38.6 27 40.3C24.3 42 21.5 43.6 18.5 45C15.6 46 12.5 47 9.5 47.5C6.4 48 3 48.5 0 48.6C-3 48.7 -6.4 48.5 -9.5 48C-12.7 47.5 -16 46.6 -19 45.4C-21.7 44 -24.6 42.6 -27 40.6C-29.7 38.7 -32 36.4 -34 34C-36 31.6 -37.7 29 -39.3 26C-41 23.6 -42 21 -43.5 18C-45 15 -46 12.4 -47 9.4C-48 6.3 -49 3 -49.3 0C-49.7 -3 -50 -6.6 -49.5 -10C-49 -13 -48.3 -16.4 -47 -19.5C-46 -22.6 -44.3 -25.6 -42.5 -28.4C-40.6 -31 -38.4 -34 -36 -36C-33.6 -38.3 -31 -40.4 -28 -42C-25.3 -43.7 -22 -45 -19 -46C-16 -47 -12.7 -47.4 -9.5 -47.7C-6.3 -48 -3 -48 -0 -47.5C3 -47.3 6 -47 9 -46C12 -45.4 15 -44.6 18 -43.4C21 -42.3 23.7 -41 26.3 -39.3C29 -37.7 31.3 -35.7 33.6 -33.6C36 -31.5 38 -29 40 -26.6C42 -24 43.6 -21.5 45 -18.7C46.7 -16 48 -13 49 -10C50 -6.7 51 -3.3 51 0ZM45,0.5C45 3.3 45 6.4 44.5 9C44 12 42.6 14.7 41 17C40 19.6 38 22 36 24C34 26 32 28 30 29.6C28 31.4 26 33 23.7 34.5C21.4 36 19 37 16.6 38C14 39 11.5 40 9 40.4C6.3 41 3.7 41.4 1 41.6C-1.7 41.7 -4.5 42 -7 41.5C-10 41 -12.6 40.5 -15 39.4C-17.6 38.3 -20 36.6 -22 35C-24 33 -26 31 -27.5 29C-29 27 -30.7 25 -32 22.7C-33.6 20.5 -35 18.3 -36.3 16C-37.5 13.6 -38.6 11 -39.4 8.5C-40 6 -40.6 3 -41 0.5C-41 -2 -41 -5 -41 -8C-40.5 -10.6 -40 -13.5 -39.3 -16C-38.4 -19 -37.3 -21.6 -35.7 -24C-34 -26.4 -32 -28.5 -30 -30.3C-27.6 -32 -25 -33.5 -22.6 -35C-20 -36 -17.5 -37 -15 -38C-12.3 -38.7 -9.7 -39.5 -7 -40C-4.4 -40.3 -1.6 -40.4 1 -40C3.6 -40 6.3 -39.4 9 -38.6C11.3 -38 13.7 -37 16 -36C18.4 -34.7 20.7 -33.6 23 -32.3C25 -31 27.4 -29.6 29.4 -28C31.5 -26.3 33.4 -24.3 35 -22.3C36.7 -20 38 -18 39.5 -15.5C41 -13 42 -10.5 43 -8C44 -5 44.6 -2.3 45 0.5Z" fill-rule="evenodd" fill="currentColor"></path><path class="rg r5" d="M38.3,2C38.5 4.3 38.5 7 38 9.5C37.3 12 36 14.4 34.7 16.6C33.4 19 31.7 21 30 22.6C28.4 24.4 26.7 26 25 27.7C23 29 21 30.6 19 32C17 33 15 34 12.7 35C10.6 36 8.4 37 6 37.7C4 38.3 1.3 39 -1 39C-3.5 39 -6 38.5 -8.3 38C-10.6 37.4 -13 36.5 -15 35.5C-17 34.6 -19.4 33.4 -21.3 32C-23 30.7 -25 29 -26.7 27.4C-28.3 25.7 -29.6 23.7 -31 21.7C-32 20 -33.3 17.7 -34.3 15.6C-35.3 13.4 -36.3 11 -37 9C-37.5 6.6 -38 4 -38 2C-38.3 -0.6 -38.3 -3 -38 -5.6C-38 -8 -37.7 -10.7 -37 -13C-36.3 -15.5 -35 -18 -34 -20C-32.4 -22 -30.5 -24 -28.6 -25.7C-26.7 -27.4 -24.4 -28.7 -22 -30C-20 -31 -17.6 -32 -15.3 -32.5C-13 -33 -10.5 -33.5 -8 -33.7C-5.7 -34 -3.4 -34 -1 -33.7C1.3 -33.6 3.6 -33.5 6 -33C8 -32.7 10.5 -32 12.6 -31C14.7 -30 16.7 -29 18.5 -27.5C20.4 -26 22 -24.7 24 -23C25.6 -21.6 27.3 -20 29 -18C30.4 -16.4 32 -14.5 33 -12.4C34.4 -10.3 35.5 -8 36.4 -5.7C37 -3.3 38 -0.7 38.3 2Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="rg r4" d="M30,3C30.3 5 30 7.4 29.4 9.5C29 11.5 27.7 13.5 26.6 15.3C25.5 17 24 18.7 23 20.3C21.5 22 20 23.3 18.6 24.6C17 26 15.4 27 13.7 28C12 29 10.3 30 8.5 31C6.7 31.7 5 32.5 3 33C1 33.5 -1 34 -3 34C-5 34 -7 33.7 -9 33.3C-11 33 -13 32.3 -15 31.5C-16.7 30.7 -18.5 30 -20 28.7C-22 27.5 -23.3 26 -24.6 24.6C-26 23 -27 21.3 -28 19.6C-29 18 -30 16 -30.6 14.4C-31.4 12.6 -32 11 -32.7 9C-33 7 -33.6 5 -34 3C-34 1 -34.5 -1 -34.5 -3C-34.4 -5.4 -34.3 -7.6 -33.7 -9.7C-33 -12 -32 -14 -31 -15.6C-29.7 -17.4 -28 -19 -26 -20C-24.5 -21.5 -22.6 -22.5 -20.7 -23.4C-19 -24.3 -17 -25 -15 -25.4C-13 -26 -11 -26 -9 -26C-7 -26.3 -5 -26.4 -3 -26.3C-1 -26.3 1 -26 2.7 -26C4.6 -25.6 6.5 -25 8.3 -24.3C10 -23.5 11.7 -22.5 13.3 -21.5C15 -20.4 16.5 -19.3 18 -18C19.6 -17 21 -15.5 22.5 -14C24 -12.5 25 -11 26 -9C27 -7.3 28 -5.3 29 -3.3C29.5 -1.3 30 1 30 3Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="rg r3" d="M20.5,4.3C20.5 6 20 7.6 19.7 9C19 11 18.4 12.3 17.7 13.7C17 15 16 16.4 15 17.7C14 19 13 20 12 21C10.7 22 9.3 23 8 24C6.7 24.6 5.3 25.3 4 26C2.5 26.4 1 27 -0.4 27.3C-2 27.7 -3.5 28 -5 28C-6.6 28 -8 28 -9.7 27.5C-11 27.3 -12.7 27 -14 26.4C-15.6 26 -17 25 -18.4 24C-19.6 23.3 -20.7 22 -21.7 21C-22.7 20 -23.5 18.4 -24 17C-25 16 -25.7 14.5 -26.3 13C-27 11.7 -27.5 10.3 -28 9C-28.5 7.4 -29 6 -29 4.3C-29.5 2.7 -30 1 -30 -0.7C-30 -2.3 -29.7 -4 -29 -5.7C-28.6 -7.3 -28 -9 -26.7 -10C-25.7 -11.5 -24.3 -12.6 -23 -13.6C-21.5 -14.6 -20 -15.3 -18.5 -16C-17 -16.6 -15.5 -17 -14 -17.4C-12.5 -17.7 -11 -18 -9.5 -18C-8 -18 -6.5 -18 -5 -18C-3.6 -18 -2 -18 -0.6 -18C1 -17.7 2.3 -17.3 3.7 -16.7C5 -16 6.4 -15.5 7.7 -15C9 -14 10.3 -13 11.5 -12.3C13 -11.4 14 -10.4 15 -9C16 -8 17 -6.7 18 -5C18.7 -4 19.4 -2.3 20 -0.7C20 1 20.6 2.6 20.5 4.3Z" fill="none" stroke="var(--acc)" stroke-width="2.0"></path><path class="rg r2" d="M9.7,5.6C9.7 6.7 9.4 8 9 9C9 10 8.4 11 8 12C7.5 13 7 14 6.4 14.6C6 15.5 5 16.3 4.3 17C3.5 17.7 2.5 18 1.6 18.7C0.7 19 -0 19.6 -1 20C-2 20.3 -3 20.6 -4 21C-5 21 -6 21 -7 21C-8 21 -9 21 -10 21C-11 20.7 -12 20.6 -13 20C-14 20 -15 19.5 -16 19C-17 18.3 -17.6 17.5 -18.3 16.7C-19 16 -19.5 15 -20 14C-20.6 13.3 -21 12.5 -21.5 11.5C-22 10.6 -22.4 9.7 -22.7 8.7C-23 7.7 -23.3 6.7 -23.5 5.6C-23.7 4.5 -24 3.4 -24 2.3C-24 1 -23.7 -0 -23 -1C-23 -2 -22 -3 -21.4 -4C-20.7 -5 -20 -5.5 -19 -6C-18 -7 -17 -7.3 -16 -7.7C-15 -8 -14 -8.4 -13 -8.7C-12 -9 -11 -9 -10 -9C-9 -9 -8 -9.3 -7 -9.3C-6 -9.4 -5 -9.3 -4 -9C-3 -9 -2.3 -9 -1.3 -8.4C-0.4 -8 0.5 -7.7 1.4 -7C2.3 -7 3.3 -6.3 4 -5.7C5 -5 6 -4.3 6.5 -3.5C7 -2.7 8 -2 8 -1C8.7 0 9 1 9.3 2.3C9.6 3.4 9.7 4.5 9.7 5.6Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="rg r1" d="M-1,7C-1 7.4 -1 8 -1 8.4C-1 9 -1.3 9.5 -1.5 10C-1.7 10.5 -2 11 -2.3 11.4C-2.6 12 -3 12.3 -3.4 12.6C-4 13 -4.3 13 -4.7 13.4C-5 13.6 -5.7 14 -6 14C-6.7 14 -7 14 -7.6 14.3C-8 14.4 -8.6 14.4 -9 14.4C-9.6 14.4 -10 14.4 -10.6 14.4C-11 14.3 -11.6 14.3 -12 14C-12.6 14 -13 13.7 -13.5 13.4C-14 13 -14.3 13 -14.7 12.4C-15 12 -15.3 11.6 -15.6 11C-16 11 -16 10.3 -16.5 10C-16.7 9.4 -17 9 -17 8.4C-17 8 -17.4 7.4 -17.4 7C-17.5 6.3 -17.6 5.7 -17.5 5C-17.5 4.6 -17.3 4 -17 3.5C-17 3 -16.5 2.5 -16 2C-16 1.7 -15.3 1.4 -15 1C-14.5 0.7 -14 0.4 -13.5 0C-13 0 -12.5 -0 -12 -0.3C-11.6 -0.4 -11 -0.5 -10.6 -0.5C-10 -0.6 -9.6 -0.6 -9 -0.6C-8.6 -0.6 -8 -0.6 -7.7 -0.5C-7 -0.5 -6.7 -0.3 -6 -0C-5.7 -0 -5.3 0 -5 0.3C-4.3 0.6 -4 1 -3.4 1C-3 1.4 -2.6 2 -2 2C-2 2.6 -1.6 3 -1.4 3.6C-1 4 -1 4.7 -1 5C-1 5.7 -1 6.3 -1 7Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="rg crack" d="M-1.8,-5.1 L32.8,-46.8 L25.5,-51.9Z" fill="var(--crack)"></path></svg>
+        <div class="wm" role="img" aria-label="tron films"><b>tron</b><span>films</span></div>
+      </div>
+    </div>
+    <footer class="foot">
+      <span>© 2026 Tron films</span>
+      <nav aria-label="Redes y legal"><a href="#" rel="noopener">Instagram</a><a href="#" rel="noopener">Vimeo</a><a href="#">Aviso legal</a></nav>
+    </footer>
+  </section>
+</main>
+
+<section class="ficha" id="ficha" aria-labelledby="ft">
+  <div class="fimg" id="fimg">
+    <div class="thumbs" id="thumbs" role="group" aria-label="Fotogramas"></div>
+    <div class="dots" id="dots" role="group" aria-label="Fotogramas"></div>
+  </div>
+  <article class="ftext" id="ftext">
+    <div class="fnum"><span><span class="n" id="fn">01</span> <span class="of" id="fof">/ 09</span></span><span class="lbl" id="fteam">Experiencia del equipo</span></div>
+    <h1 id="ft"></h1>
+    <div class="note" id="fnote"><span class="dot" aria-hidden="true"></span><span></span></div>
+    <dl class="facts">
+      <dt class="lbl">Año</dt><dd id="fyear"></dd>
+      <dt class="lbl">Lugar</dt><dd id="fplace"></dd>
+      <dt class="lbl">Plataforma</dt><dd id="fplat"></dd>
+    </dl>
+    <p class="syn" id="fsyn"></p>
+    <a class="btn" id="flink" href="#" target="_blank" rel="noopener"><span></span><span class="ar" aria-hidden="true">↗</span></a>
+    <nav class="pn" aria-label="Otros proyectos">
+      <button type="button" id="fprev"><span class="lbl"><span class="ar">←</span> Anterior</span><span class="t"></span></button>
+      <button type="button" id="fnext"><span class="lbl">Siguiente <span class="ar">→</span></span><span class="t"></span></button>
+    </nav>
+  </article>
+</section>
+
+<section class="team" id="equipo" aria-labelledby="eh">
+  <header><h1 id="eh">Equipo</h1></header>
+  <ul class="people"><li class="person"><svg viewBox="-60 -60 120 120" aria-hidden="true"><g transform="translate(0 0)"><path d="M60,0C60 3.4 59.7 7 59 10.4C58.4 14 57.3 17 56 20.4C54.6 23.5 53 26.6 51 29.4C49 32.3 47 35 44.7 37.5C42.4 40 40 42.4 37.4 44.5C34.7 46.6 32 48.6 29 50C26 52 23 53 19.7 54C16.5 55 13 55.7 10 56C6.6 56.4 3.3 56.4 0 56C-3.3 56 -6.5 55.7 -9.7 55C-13 54.6 -16 54 -19.3 53C-22.4 52 -25.6 51 -28.6 49.5C-31.6 48 -34.5 46.4 -37.3 44.4C-40 42.4 -42.6 40 -45 37.7C-47 35 -49.3 32.4 -51 29.5C-53 26.6 -54.6 23.5 -56 20.3C-57 17 -58 14 -59 10.4C-59.4 7 -59.6 3.4 -59.5 0C-59.3 -3.4 -58.7 -7 -58 -10C-57 -13.5 -55.7 -16.7 -54.3 -20C-53 -23 -51 -25.7 -49.4 -28.5C-47.6 -31.3 -45.7 -34 -43.6 -36.6C-41.5 -39 -39.4 -41.7 -37 -44C-34.6 -46.4 -32 -48.7 -29 -50.6C-26.4 -52.4 -23.3 -54 -20 -55.3C-17 -56.5 -13.5 -57.3 -10 -58C-7 -58 -3.4 -58 -0 -58C3.4 -58 6.7 -57 10 -56.5C13 -55.7 16.4 -54.7 19.5 -53.5C22.5 -52.3 25.6 -51 28.4 -49C31 -47.5 34 -45.6 36.5 -43.5C39 -41.4 41.4 -39 43.5 -36.5C45.7 -34 47.7 -31.4 49.6 -28.6C51.4 -26 53 -23 54.6 -20C56 -17 57.3 -13.6 58 -10.3C59 -7 59.7 -3.4 60 0Z" transform="rotate(0)" fill="var(--acc)"/><g class="ph" transform="scale(.66)" style="color:var(--ink);--acc:var(--paper);--crack:var(--acc)"><path class="band" d="M51,0C51.4 3.3 51 7 50.4 10C49.7 13.3 48.4 16.5 47 19.4C45.3 22.3 43.3 25 41.3 27.6C39 30 37 32.4 34.6 34.6C32 36.7 29.6 38.6 27 40.3C24.3 42 21.5 43.6 18.5 45C15.6 46 12.5 47 9.5 47.5C6.4 48 3 48.5 0 48.6C-3 48.7 -6.4 48.5 -9.5 48C-12.7 47.5 -16 46.6 -19 45.4C-21.7 44 -24.6 42.6 -27 40.6C-29.7 38.7 -32 36.4 -34 34C-36 31.6 -37.7 29 -39.3 26C-41 23.6 -42 21 -43.5 18C-45 15 -46 12.4 -47 9.4C-48 6.3 -49 3 -49.3 0C-49.7 -3 -50 -6.6 -49.5 -10C-49 -13 -48.3 -16.4 -47 -19.5C-46 -22.6 -44.3 -25.6 -42.5 -28.4C-40.6 -31 -38.4 -34 -36 -36C-33.6 -38.3 -31 -40.4 -28 -42C-25.3 -43.7 -22 -45 -19 -46C-16 -47 -12.7 -47.4 -9.5 -47.7C-6.3 -48 -3 -48 -0 -47.5C3 -47.3 6 -47 9 -46C12 -45.4 15 -44.6 18 -43.4C21 -42.3 23.7 -41 26.3 -39.3C29 -37.7 31.3 -35.7 33.6 -33.6C36 -31.5 38 -29 40 -26.6C42 -24 43.6 -21.5 45 -18.7C46.7 -16 48 -13 49 -10C50 -6.7 51 -3.3 51 0ZM45,0.5C45 3.3 45 6.4 44.5 9C44 12 42.6 14.7 41 17C40 19.6 38 22 36 24C34 26 32 28 30 29.6C28 31.4 26 33 23.7 34.5C21.4 36 19 37 16.6 38C14 39 11.5 40 9 40.4C6.3 41 3.7 41.4 1 41.6C-1.7 41.7 -4.5 42 -7 41.5C-10 41 -12.6 40.5 -15 39.4C-17.6 38.3 -20 36.6 -22 35C-24 33 -26 31 -27.5 29C-29 27 -30.7 25 -32 22.7C-33.6 20.5 -35 18.3 -36.3 16C-37.5 13.6 -38.6 11 -39.4 8.5C-40 6 -40.6 3 -41 0.5C-41 -2 -41 -5 -41 -8C-40.5 -10.6 -40 -13.5 -39.3 -16C-38.4 -19 -37.3 -21.6 -35.7 -24C-34 -26.4 -32 -28.5 -30 -30.3C-27.6 -32 -25 -33.5 -22.6 -35C-20 -36 -17.5 -37 -15 -38C-12.3 -38.7 -9.7 -39.5 -7 -40C-4.4 -40.3 -1.6 -40.4 1 -40C3.6 -40 6.3 -39.4 9 -38.6C11.3 -38 13.7 -37 16 -36C18.4 -34.7 20.7 -33.6 23 -32.3C25 -31 27.4 -29.6 29.4 -28C31.5 -26.3 33.4 -24.3 35 -22.3C36.7 -20 38 -18 39.5 -15.5C41 -13 42 -10.5 43 -8C44 -5 44.6 -2.3 45 0.5Z" fill-rule="evenodd" fill="currentColor"></path><path class="r5" d="M38.3,2C38.5 4.3 38.5 7 38 9.5C37.3 12 36 14.4 34.7 16.6C33.4 19 31.7 21 30 22.6C28.4 24.4 26.7 26 25 27.7C23 29 21 30.6 19 32C17 33 15 34 12.7 35C10.6 36 8.4 37 6 37.7C4 38.3 1.3 39 -1 39C-3.5 39 -6 38.5 -8.3 38C-10.6 37.4 -13 36.5 -15 35.5C-17 34.6 -19.4 33.4 -21.3 32C-23 30.7 -25 29 -26.7 27.4C-28.3 25.7 -29.6 23.7 -31 21.7C-32 20 -33.3 17.7 -34.3 15.6C-35.3 13.4 -36.3 11 -37 9C-37.5 6.6 -38 4 -38 2C-38.3 -0.6 -38.3 -3 -38 -5.6C-38 -8 -37.7 -10.7 -37 -13C-36.3 -15.5 -35 -18 -34 -20C-32.4 -22 -30.5 -24 -28.6 -25.7C-26.7 -27.4 -24.4 -28.7 -22 -30C-20 -31 -17.6 -32 -15.3 -32.5C-13 -33 -10.5 -33.5 -8 -33.7C-5.7 -34 -3.4 -34 -1 -33.7C1.3 -33.6 3.6 -33.5 6 -33C8 -32.7 10.5 -32 12.6 -31C14.7 -30 16.7 -29 18.5 -27.5C20.4 -26 22 -24.7 24 -23C25.6 -21.6 27.3 -20 29 -18C30.4 -16.4 32 -14.5 33 -12.4C34.4 -10.3 35.5 -8 36.4 -5.7C37 -3.3 38 -0.7 38.3 2Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r4" d="M30,3C30.3 5 30 7.4 29.4 9.5C29 11.5 27.7 13.5 26.6 15.3C25.5 17 24 18.7 23 20.3C21.5 22 20 23.3 18.6 24.6C17 26 15.4 27 13.7 28C12 29 10.3 30 8.5 31C6.7 31.7 5 32.5 3 33C1 33.5 -1 34 -3 34C-5 34 -7 33.7 -9 33.3C-11 33 -13 32.3 -15 31.5C-16.7 30.7 -18.5 30 -20 28.7C-22 27.5 -23.3 26 -24.6 24.6C-26 23 -27 21.3 -28 19.6C-29 18 -30 16 -30.6 14.4C-31.4 12.6 -32 11 -32.7 9C-33 7 -33.6 5 -34 3C-34 1 -34.5 -1 -34.5 -3C-34.4 -5.4 -34.3 -7.6 -33.7 -9.7C-33 -12 -32 -14 -31 -15.6C-29.7 -17.4 -28 -19 -26 -20C-24.5 -21.5 -22.6 -22.5 -20.7 -23.4C-19 -24.3 -17 -25 -15 -25.4C-13 -26 -11 -26 -9 -26C-7 -26.3 -5 -26.4 -3 -26.3C-1 -26.3 1 -26 2.7 -26C4.6 -25.6 6.5 -25 8.3 -24.3C10 -23.5 11.7 -22.5 13.3 -21.5C15 -20.4 16.5 -19.3 18 -18C19.6 -17 21 -15.5 22.5 -14C24 -12.5 25 -11 26 -9C27 -7.3 28 -5.3 29 -3.3C29.5 -1.3 30 1 30 3Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r3" d="M20.5,4.3C20.5 6 20 7.6 19.7 9C19 11 18.4 12.3 17.7 13.7C17 15 16 16.4 15 17.7C14 19 13 20 12 21C10.7 22 9.3 23 8 24C6.7 24.6 5.3 25.3 4 26C2.5 26.4 1 27 -0.4 27.3C-2 27.7 -3.5 28 -5 28C-6.6 28 -8 28 -9.7 27.5C-11 27.3 -12.7 27 -14 26.4C-15.6 26 -17 25 -18.4 24C-19.6 23.3 -20.7 22 -21.7 21C-22.7 20 -23.5 18.4 -24 17C-25 16 -25.7 14.5 -26.3 13C-27 11.7 -27.5 10.3 -28 9C-28.5 7.4 -29 6 -29 4.3C-29.5 2.7 -30 1 -30 -0.7C-30 -2.3 -29.7 -4 -29 -5.7C-28.6 -7.3 -28 -9 -26.7 -10C-25.7 -11.5 -24.3 -12.6 -23 -13.6C-21.5 -14.6 -20 -15.3 -18.5 -16C-17 -16.6 -15.5 -17 -14 -17.4C-12.5 -17.7 -11 -18 -9.5 -18C-8 -18 -6.5 -18 -5 -18C-3.6 -18 -2 -18 -0.6 -18C1 -17.7 2.3 -17.3 3.7 -16.7C5 -16 6.4 -15.5 7.7 -15C9 -14 10.3 -13 11.5 -12.3C13 -11.4 14 -10.4 15 -9C16 -8 17 -6.7 18 -5C18.7 -4 19.4 -2.3 20 -0.7C20 1 20.6 2.6 20.5 4.3Z" fill="none" stroke="var(--acc)" stroke-width="2.0"></path><path class="r2" d="M9.7,5.6C9.7 6.7 9.4 8 9 9C9 10 8.4 11 8 12C7.5 13 7 14 6.4 14.6C6 15.5 5 16.3 4.3 17C3.5 17.7 2.5 18 1.6 18.7C0.7 19 -0 19.6 -1 20C-2 20.3 -3 20.6 -4 21C-5 21 -6 21 -7 21C-8 21 -9 21 -10 21C-11 20.7 -12 20.6 -13 20C-14 20 -15 19.5 -16 19C-17 18.3 -17.6 17.5 -18.3 16.7C-19 16 -19.5 15 -20 14C-20.6 13.3 -21 12.5 -21.5 11.5C-22 10.6 -22.4 9.7 -22.7 8.7C-23 7.7 -23.3 6.7 -23.5 5.6C-23.7 4.5 -24 3.4 -24 2.3C-24 1 -23.7 -0 -23 -1C-23 -2 -22 -3 -21.4 -4C-20.7 -5 -20 -5.5 -19 -6C-18 -7 -17 -7.3 -16 -7.7C-15 -8 -14 -8.4 -13 -8.7C-12 -9 -11 -9 -10 -9C-9 -9 -8 -9.3 -7 -9.3C-6 -9.4 -5 -9.3 -4 -9C-3 -9 -2.3 -9 -1.3 -8.4C-0.4 -8 0.5 -7.7 1.4 -7C2.3 -7 3.3 -6.3 4 -5.7C5 -5 6 -4.3 6.5 -3.5C7 -2.7 8 -2 8 -1C8.7 0 9 1 9.3 2.3C9.6 3.4 9.7 4.5 9.7 5.6Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r1" d="M-1,7C-1 7.4 -1 8 -1 8.4C-1 9 -1.3 9.5 -1.5 10C-1.7 10.5 -2 11 -2.3 11.4C-2.6 12 -3 12.3 -3.4 12.6C-4 13 -4.3 13 -4.7 13.4C-5 13.6 -5.7 14 -6 14C-6.7 14 -7 14 -7.6 14.3C-8 14.4 -8.6 14.4 -9 14.4C-9.6 14.4 -10 14.4 -10.6 14.4C-11 14.3 -11.6 14.3 -12 14C-12.6 14 -13 13.7 -13.5 13.4C-14 13 -14.3 13 -14.7 12.4C-15 12 -15.3 11.6 -15.6 11C-16 11 -16 10.3 -16.5 10C-16.7 9.4 -17 9 -17 8.4C-17 8 -17.4 7.4 -17.4 7C-17.5 6.3 -17.6 5.7 -17.5 5C-17.5 4.6 -17.3 4 -17 3.5C-17 3 -16.5 2.5 -16 2C-16 1.7 -15.3 1.4 -15 1C-14.5 0.7 -14 0.4 -13.5 0C-13 0 -12.5 -0 -12 -0.3C-11.6 -0.4 -11 -0.5 -10.6 -0.5C-10 -0.6 -9.6 -0.6 -9 -0.6C-8.6 -0.6 -8 -0.6 -7.7 -0.5C-7 -0.5 -6.7 -0.3 -6 -0C-5.7 -0 -5.3 0 -5 0.3C-4.3 0.6 -4 1 -3.4 1C-3 1.4 -2.6 2 -2 2C-2 2.6 -1.6 3 -1.4 3.6C-1 4 -1 4.7 -1 5C-1 5.7 -1 6.3 -1 7Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="crack" d="M-1.8,-5.1 L32.8,-46.8 L25.5,-51.9Z" fill="var(--crack)"></path></g></g></svg><span class="pname">Adriana Cardoso</span></li><li class="person"><svg viewBox="-60 -60 120 120" aria-hidden="true"><g transform="translate(0 0)"><path d="M60,0C60 3.4 59.7 7 59 10.4C58.4 14 57.3 17 56 20.4C54.6 23.5 53 26.6 51 29.4C49 32.3 47 35 44.7 37.5C42.4 40 40 42.4 37.4 44.5C34.7 46.6 32 48.6 29 50C26 52 23 53 19.7 54C16.5 55 13 55.7 10 56C6.6 56.4 3.3 56.4 0 56C-3.3 56 -6.5 55.7 -9.7 55C-13 54.6 -16 54 -19.3 53C-22.4 52 -25.6 51 -28.6 49.5C-31.6 48 -34.5 46.4 -37.3 44.4C-40 42.4 -42.6 40 -45 37.7C-47 35 -49.3 32.4 -51 29.5C-53 26.6 -54.6 23.5 -56 20.3C-57 17 -58 14 -59 10.4C-59.4 7 -59.6 3.4 -59.5 0C-59.3 -3.4 -58.7 -7 -58 -10C-57 -13.5 -55.7 -16.7 -54.3 -20C-53 -23 -51 -25.7 -49.4 -28.5C-47.6 -31.3 -45.7 -34 -43.6 -36.6C-41.5 -39 -39.4 -41.7 -37 -44C-34.6 -46.4 -32 -48.7 -29 -50.6C-26.4 -52.4 -23.3 -54 -20 -55.3C-17 -56.5 -13.5 -57.3 -10 -58C-7 -58 -3.4 -58 -0 -58C3.4 -58 6.7 -57 10 -56.5C13 -55.7 16.4 -54.7 19.5 -53.5C22.5 -52.3 25.6 -51 28.4 -49C31 -47.5 34 -45.6 36.5 -43.5C39 -41.4 41.4 -39 43.5 -36.5C45.7 -34 47.7 -31.4 49.6 -28.6C51.4 -26 53 -23 54.6 -20C56 -17 57.3 -13.6 58 -10.3C59 -7 59.7 -3.4 60 0Z" transform="rotate(140)" fill="var(--paper)"/><g class="ph" transform="scale(.66)" style="color:var(--ink);--crack:var(--paper)"><path class="band" d="M51,0C51.4 3.3 51 7 50.4 10C49.7 13.3 48.4 16.5 47 19.4C45.3 22.3 43.3 25 41.3 27.6C39 30 37 32.4 34.6 34.6C32 36.7 29.6 38.6 27 40.3C24.3 42 21.5 43.6 18.5 45C15.6 46 12.5 47 9.5 47.5C6.4 48 3 48.5 0 48.6C-3 48.7 -6.4 48.5 -9.5 48C-12.7 47.5 -16 46.6 -19 45.4C-21.7 44 -24.6 42.6 -27 40.6C-29.7 38.7 -32 36.4 -34 34C-36 31.6 -37.7 29 -39.3 26C-41 23.6 -42 21 -43.5 18C-45 15 -46 12.4 -47 9.4C-48 6.3 -49 3 -49.3 0C-49.7 -3 -50 -6.6 -49.5 -10C-49 -13 -48.3 -16.4 -47 -19.5C-46 -22.6 -44.3 -25.6 -42.5 -28.4C-40.6 -31 -38.4 -34 -36 -36C-33.6 -38.3 -31 -40.4 -28 -42C-25.3 -43.7 -22 -45 -19 -46C-16 -47 -12.7 -47.4 -9.5 -47.7C-6.3 -48 -3 -48 -0 -47.5C3 -47.3 6 -47 9 -46C12 -45.4 15 -44.6 18 -43.4C21 -42.3 23.7 -41 26.3 -39.3C29 -37.7 31.3 -35.7 33.6 -33.6C36 -31.5 38 -29 40 -26.6C42 -24 43.6 -21.5 45 -18.7C46.7 -16 48 -13 49 -10C50 -6.7 51 -3.3 51 0ZM45,0.5C45 3.3 45 6.4 44.5 9C44 12 42.6 14.7 41 17C40 19.6 38 22 36 24C34 26 32 28 30 29.6C28 31.4 26 33 23.7 34.5C21.4 36 19 37 16.6 38C14 39 11.5 40 9 40.4C6.3 41 3.7 41.4 1 41.6C-1.7 41.7 -4.5 42 -7 41.5C-10 41 -12.6 40.5 -15 39.4C-17.6 38.3 -20 36.6 -22 35C-24 33 -26 31 -27.5 29C-29 27 -30.7 25 -32 22.7C-33.6 20.5 -35 18.3 -36.3 16C-37.5 13.6 -38.6 11 -39.4 8.5C-40 6 -40.6 3 -41 0.5C-41 -2 -41 -5 -41 -8C-40.5 -10.6 -40 -13.5 -39.3 -16C-38.4 -19 -37.3 -21.6 -35.7 -24C-34 -26.4 -32 -28.5 -30 -30.3C-27.6 -32 -25 -33.5 -22.6 -35C-20 -36 -17.5 -37 -15 -38C-12.3 -38.7 -9.7 -39.5 -7 -40C-4.4 -40.3 -1.6 -40.4 1 -40C3.6 -40 6.3 -39.4 9 -38.6C11.3 -38 13.7 -37 16 -36C18.4 -34.7 20.7 -33.6 23 -32.3C25 -31 27.4 -29.6 29.4 -28C31.5 -26.3 33.4 -24.3 35 -22.3C36.7 -20 38 -18 39.5 -15.5C41 -13 42 -10.5 43 -8C44 -5 44.6 -2.3 45 0.5Z" fill-rule="evenodd" fill="currentColor"></path><path class="r5" d="M38.3,2C38.5 4.3 38.5 7 38 9.5C37.3 12 36 14.4 34.7 16.6C33.4 19 31.7 21 30 22.6C28.4 24.4 26.7 26 25 27.7C23 29 21 30.6 19 32C17 33 15 34 12.7 35C10.6 36 8.4 37 6 37.7C4 38.3 1.3 39 -1 39C-3.5 39 -6 38.5 -8.3 38C-10.6 37.4 -13 36.5 -15 35.5C-17 34.6 -19.4 33.4 -21.3 32C-23 30.7 -25 29 -26.7 27.4C-28.3 25.7 -29.6 23.7 -31 21.7C-32 20 -33.3 17.7 -34.3 15.6C-35.3 13.4 -36.3 11 -37 9C-37.5 6.6 -38 4 -38 2C-38.3 -0.6 -38.3 -3 -38 -5.6C-38 -8 -37.7 -10.7 -37 -13C-36.3 -15.5 -35 -18 -34 -20C-32.4 -22 -30.5 -24 -28.6 -25.7C-26.7 -27.4 -24.4 -28.7 -22 -30C-20 -31 -17.6 -32 -15.3 -32.5C-13 -33 -10.5 -33.5 -8 -33.7C-5.7 -34 -3.4 -34 -1 -33.7C1.3 -33.6 3.6 -33.5 6 -33C8 -32.7 10.5 -32 12.6 -31C14.7 -30 16.7 -29 18.5 -27.5C20.4 -26 22 -24.7 24 -23C25.6 -21.6 27.3 -20 29 -18C30.4 -16.4 32 -14.5 33 -12.4C34.4 -10.3 35.5 -8 36.4 -5.7C37 -3.3 38 -0.7 38.3 2Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r4" d="M30,3C30.3 5 30 7.4 29.4 9.5C29 11.5 27.7 13.5 26.6 15.3C25.5 17 24 18.7 23 20.3C21.5 22 20 23.3 18.6 24.6C17 26 15.4 27 13.7 28C12 29 10.3 30 8.5 31C6.7 31.7 5 32.5 3 33C1 33.5 -1 34 -3 34C-5 34 -7 33.7 -9 33.3C-11 33 -13 32.3 -15 31.5C-16.7 30.7 -18.5 30 -20 28.7C-22 27.5 -23.3 26 -24.6 24.6C-26 23 -27 21.3 -28 19.6C-29 18 -30 16 -30.6 14.4C-31.4 12.6 -32 11 -32.7 9C-33 7 -33.6 5 -34 3C-34 1 -34.5 -1 -34.5 -3C-34.4 -5.4 -34.3 -7.6 -33.7 -9.7C-33 -12 -32 -14 -31 -15.6C-29.7 -17.4 -28 -19 -26 -20C-24.5 -21.5 -22.6 -22.5 -20.7 -23.4C-19 -24.3 -17 -25 -15 -25.4C-13 -26 -11 -26 -9 -26C-7 -26.3 -5 -26.4 -3 -26.3C-1 -26.3 1 -26 2.7 -26C4.6 -25.6 6.5 -25 8.3 -24.3C10 -23.5 11.7 -22.5 13.3 -21.5C15 -20.4 16.5 -19.3 18 -18C19.6 -17 21 -15.5 22.5 -14C24 -12.5 25 -11 26 -9C27 -7.3 28 -5.3 29 -3.3C29.5 -1.3 30 1 30 3Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r3" d="M20.5,4.3C20.5 6 20 7.6 19.7 9C19 11 18.4 12.3 17.7 13.7C17 15 16 16.4 15 17.7C14 19 13 20 12 21C10.7 22 9.3 23 8 24C6.7 24.6 5.3 25.3 4 26C2.5 26.4 1 27 -0.4 27.3C-2 27.7 -3.5 28 -5 28C-6.6 28 -8 28 -9.7 27.5C-11 27.3 -12.7 27 -14 26.4C-15.6 26 -17 25 -18.4 24C-19.6 23.3 -20.7 22 -21.7 21C-22.7 20 -23.5 18.4 -24 17C-25 16 -25.7 14.5 -26.3 13C-27 11.7 -27.5 10.3 -28 9C-28.5 7.4 -29 6 -29 4.3C-29.5 2.7 -30 1 -30 -0.7C-30 -2.3 -29.7 -4 -29 -5.7C-28.6 -7.3 -28 -9 -26.7 -10C-25.7 -11.5 -24.3 -12.6 -23 -13.6C-21.5 -14.6 -20 -15.3 -18.5 -16C-17 -16.6 -15.5 -17 -14 -17.4C-12.5 -17.7 -11 -18 -9.5 -18C-8 -18 -6.5 -18 -5 -18C-3.6 -18 -2 -18 -0.6 -18C1 -17.7 2.3 -17.3 3.7 -16.7C5 -16 6.4 -15.5 7.7 -15C9 -14 10.3 -13 11.5 -12.3C13 -11.4 14 -10.4 15 -9C16 -8 17 -6.7 18 -5C18.7 -4 19.4 -2.3 20 -0.7C20 1 20.6 2.6 20.5 4.3Z" fill="none" stroke="var(--acc)" stroke-width="2.0"></path><path class="r2" d="M9.7,5.6C9.7 6.7 9.4 8 9 9C9 10 8.4 11 8 12C7.5 13 7 14 6.4 14.6C6 15.5 5 16.3 4.3 17C3.5 17.7 2.5 18 1.6 18.7C0.7 19 -0 19.6 -1 20C-2 20.3 -3 20.6 -4 21C-5 21 -6 21 -7 21C-8 21 -9 21 -10 21C-11 20.7 -12 20.6 -13 20C-14 20 -15 19.5 -16 19C-17 18.3 -17.6 17.5 -18.3 16.7C-19 16 -19.5 15 -20 14C-20.6 13.3 -21 12.5 -21.5 11.5C-22 10.6 -22.4 9.7 -22.7 8.7C-23 7.7 -23.3 6.7 -23.5 5.6C-23.7 4.5 -24 3.4 -24 2.3C-24 1 -23.7 -0 -23 -1C-23 -2 -22 -3 -21.4 -4C-20.7 -5 -20 -5.5 -19 -6C-18 -7 -17 -7.3 -16 -7.7C-15 -8 -14 -8.4 -13 -8.7C-12 -9 -11 -9 -10 -9C-9 -9 -8 -9.3 -7 -9.3C-6 -9.4 -5 -9.3 -4 -9C-3 -9 -2.3 -9 -1.3 -8.4C-0.4 -8 0.5 -7.7 1.4 -7C2.3 -7 3.3 -6.3 4 -5.7C5 -5 6 -4.3 6.5 -3.5C7 -2.7 8 -2 8 -1C8.7 0 9 1 9.3 2.3C9.6 3.4 9.7 4.5 9.7 5.6Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r1" d="M-1,7C-1 7.4 -1 8 -1 8.4C-1 9 -1.3 9.5 -1.5 10C-1.7 10.5 -2 11 -2.3 11.4C-2.6 12 -3 12.3 -3.4 12.6C-4 13 -4.3 13 -4.7 13.4C-5 13.6 -5.7 14 -6 14C-6.7 14 -7 14 -7.6 14.3C-8 14.4 -8.6 14.4 -9 14.4C-9.6 14.4 -10 14.4 -10.6 14.4C-11 14.3 -11.6 14.3 -12 14C-12.6 14 -13 13.7 -13.5 13.4C-14 13 -14.3 13 -14.7 12.4C-15 12 -15.3 11.6 -15.6 11C-16 11 -16 10.3 -16.5 10C-16.7 9.4 -17 9 -17 8.4C-17 8 -17.4 7.4 -17.4 7C-17.5 6.3 -17.6 5.7 -17.5 5C-17.5 4.6 -17.3 4 -17 3.5C-17 3 -16.5 2.5 -16 2C-16 1.7 -15.3 1.4 -15 1C-14.5 0.7 -14 0.4 -13.5 0C-13 0 -12.5 -0 -12 -0.3C-11.6 -0.4 -11 -0.5 -10.6 -0.5C-10 -0.6 -9.6 -0.6 -9 -0.6C-8.6 -0.6 -8 -0.6 -7.7 -0.5C-7 -0.5 -6.7 -0.3 -6 -0C-5.7 -0 -5.3 0 -5 0.3C-4.3 0.6 -4 1 -3.4 1C-3 1.4 -2.6 2 -2 2C-2 2.6 -1.6 3 -1.4 3.6C-1 4 -1 4.7 -1 5C-1 5.7 -1 6.3 -1 7Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="crack" d="M-1.8,-5.1 L32.8,-46.8 L25.5,-51.9Z" fill="var(--crack)"></path></g></g></svg><span class="pname">Rodrigo Hernández</span></li><li class="person"><svg viewBox="-60 -60 120 120" aria-hidden="true"><g transform="translate(0 0)"><g class="ph" transform="scale(1.08)" style="color:var(--paper);--crack:var(--ink)"><path class="band" d="M51,0C51.4 3.3 51 7 50.4 10C49.7 13.3 48.4 16.5 47 19.4C45.3 22.3 43.3 25 41.3 27.6C39 30 37 32.4 34.6 34.6C32 36.7 29.6 38.6 27 40.3C24.3 42 21.5 43.6 18.5 45C15.6 46 12.5 47 9.5 47.5C6.4 48 3 48.5 0 48.6C-3 48.7 -6.4 48.5 -9.5 48C-12.7 47.5 -16 46.6 -19 45.4C-21.7 44 -24.6 42.6 -27 40.6C-29.7 38.7 -32 36.4 -34 34C-36 31.6 -37.7 29 -39.3 26C-41 23.6 -42 21 -43.5 18C-45 15 -46 12.4 -47 9.4C-48 6.3 -49 3 -49.3 0C-49.7 -3 -50 -6.6 -49.5 -10C-49 -13 -48.3 -16.4 -47 -19.5C-46 -22.6 -44.3 -25.6 -42.5 -28.4C-40.6 -31 -38.4 -34 -36 -36C-33.6 -38.3 -31 -40.4 -28 -42C-25.3 -43.7 -22 -45 -19 -46C-16 -47 -12.7 -47.4 -9.5 -47.7C-6.3 -48 -3 -48 -0 -47.5C3 -47.3 6 -47 9 -46C12 -45.4 15 -44.6 18 -43.4C21 -42.3 23.7 -41 26.3 -39.3C29 -37.7 31.3 -35.7 33.6 -33.6C36 -31.5 38 -29 40 -26.6C42 -24 43.6 -21.5 45 -18.7C46.7 -16 48 -13 49 -10C50 -6.7 51 -3.3 51 0ZM45,0.5C45 3.3 45 6.4 44.5 9C44 12 42.6 14.7 41 17C40 19.6 38 22 36 24C34 26 32 28 30 29.6C28 31.4 26 33 23.7 34.5C21.4 36 19 37 16.6 38C14 39 11.5 40 9 40.4C6.3 41 3.7 41.4 1 41.6C-1.7 41.7 -4.5 42 -7 41.5C-10 41 -12.6 40.5 -15 39.4C-17.6 38.3 -20 36.6 -22 35C-24 33 -26 31 -27.5 29C-29 27 -30.7 25 -32 22.7C-33.6 20.5 -35 18.3 -36.3 16C-37.5 13.6 -38.6 11 -39.4 8.5C-40 6 -40.6 3 -41 0.5C-41 -2 -41 -5 -41 -8C-40.5 -10.6 -40 -13.5 -39.3 -16C-38.4 -19 -37.3 -21.6 -35.7 -24C-34 -26.4 -32 -28.5 -30 -30.3C-27.6 -32 -25 -33.5 -22.6 -35C-20 -36 -17.5 -37 -15 -38C-12.3 -38.7 -9.7 -39.5 -7 -40C-4.4 -40.3 -1.6 -40.4 1 -40C3.6 -40 6.3 -39.4 9 -38.6C11.3 -38 13.7 -37 16 -36C18.4 -34.7 20.7 -33.6 23 -32.3C25 -31 27.4 -29.6 29.4 -28C31.5 -26.3 33.4 -24.3 35 -22.3C36.7 -20 38 -18 39.5 -15.5C41 -13 42 -10.5 43 -8C44 -5 44.6 -2.3 45 0.5Z" fill-rule="evenodd" fill="currentColor"></path><path class="r5" d="M38.3,2C38.5 4.3 38.5 7 38 9.5C37.3 12 36 14.4 34.7 16.6C33.4 19 31.7 21 30 22.6C28.4 24.4 26.7 26 25 27.7C23 29 21 30.6 19 32C17 33 15 34 12.7 35C10.6 36 8.4 37 6 37.7C4 38.3 1.3 39 -1 39C-3.5 39 -6 38.5 -8.3 38C-10.6 37.4 -13 36.5 -15 35.5C-17 34.6 -19.4 33.4 -21.3 32C-23 30.7 -25 29 -26.7 27.4C-28.3 25.7 -29.6 23.7 -31 21.7C-32 20 -33.3 17.7 -34.3 15.6C-35.3 13.4 -36.3 11 -37 9C-37.5 6.6 -38 4 -38 2C-38.3 -0.6 -38.3 -3 -38 -5.6C-38 -8 -37.7 -10.7 -37 -13C-36.3 -15.5 -35 -18 -34 -20C-32.4 -22 -30.5 -24 -28.6 -25.7C-26.7 -27.4 -24.4 -28.7 -22 -30C-20 -31 -17.6 -32 -15.3 -32.5C-13 -33 -10.5 -33.5 -8 -33.7C-5.7 -34 -3.4 -34 -1 -33.7C1.3 -33.6 3.6 -33.5 6 -33C8 -32.7 10.5 -32 12.6 -31C14.7 -30 16.7 -29 18.5 -27.5C20.4 -26 22 -24.7 24 -23C25.6 -21.6 27.3 -20 29 -18C30.4 -16.4 32 -14.5 33 -12.4C34.4 -10.3 35.5 -8 36.4 -5.7C37 -3.3 38 -0.7 38.3 2Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r4" d="M30,3C30.3 5 30 7.4 29.4 9.5C29 11.5 27.7 13.5 26.6 15.3C25.5 17 24 18.7 23 20.3C21.5 22 20 23.3 18.6 24.6C17 26 15.4 27 13.7 28C12 29 10.3 30 8.5 31C6.7 31.7 5 32.5 3 33C1 33.5 -1 34 -3 34C-5 34 -7 33.7 -9 33.3C-11 33 -13 32.3 -15 31.5C-16.7 30.7 -18.5 30 -20 28.7C-22 27.5 -23.3 26 -24.6 24.6C-26 23 -27 21.3 -28 19.6C-29 18 -30 16 -30.6 14.4C-31.4 12.6 -32 11 -32.7 9C-33 7 -33.6 5 -34 3C-34 1 -34.5 -1 -34.5 -3C-34.4 -5.4 -34.3 -7.6 -33.7 -9.7C-33 -12 -32 -14 -31 -15.6C-29.7 -17.4 -28 -19 -26 -20C-24.5 -21.5 -22.6 -22.5 -20.7 -23.4C-19 -24.3 -17 -25 -15 -25.4C-13 -26 -11 -26 -9 -26C-7 -26.3 -5 -26.4 -3 -26.3C-1 -26.3 1 -26 2.7 -26C4.6 -25.6 6.5 -25 8.3 -24.3C10 -23.5 11.7 -22.5 13.3 -21.5C15 -20.4 16.5 -19.3 18 -18C19.6 -17 21 -15.5 22.5 -14C24 -12.5 25 -11 26 -9C27 -7.3 28 -5.3 29 -3.3C29.5 -1.3 30 1 30 3Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r3" d="M20.5,4.3C20.5 6 20 7.6 19.7 9C19 11 18.4 12.3 17.7 13.7C17 15 16 16.4 15 17.7C14 19 13 20 12 21C10.7 22 9.3 23 8 24C6.7 24.6 5.3 25.3 4 26C2.5 26.4 1 27 -0.4 27.3C-2 27.7 -3.5 28 -5 28C-6.6 28 -8 28 -9.7 27.5C-11 27.3 -12.7 27 -14 26.4C-15.6 26 -17 25 -18.4 24C-19.6 23.3 -20.7 22 -21.7 21C-22.7 20 -23.5 18.4 -24 17C-25 16 -25.7 14.5 -26.3 13C-27 11.7 -27.5 10.3 -28 9C-28.5 7.4 -29 6 -29 4.3C-29.5 2.7 -30 1 -30 -0.7C-30 -2.3 -29.7 -4 -29 -5.7C-28.6 -7.3 -28 -9 -26.7 -10C-25.7 -11.5 -24.3 -12.6 -23 -13.6C-21.5 -14.6 -20 -15.3 -18.5 -16C-17 -16.6 -15.5 -17 -14 -17.4C-12.5 -17.7 -11 -18 -9.5 -18C-8 -18 -6.5 -18 -5 -18C-3.6 -18 -2 -18 -0.6 -18C1 -17.7 2.3 -17.3 3.7 -16.7C5 -16 6.4 -15.5 7.7 -15C9 -14 10.3 -13 11.5 -12.3C13 -11.4 14 -10.4 15 -9C16 -8 17 -6.7 18 -5C18.7 -4 19.4 -2.3 20 -0.7C20 1 20.6 2.6 20.5 4.3Z" fill="none" stroke="var(--acc)" stroke-width="2.0"></path><path class="r2" d="M9.7,5.6C9.7 6.7 9.4 8 9 9C9 10 8.4 11 8 12C7.5 13 7 14 6.4 14.6C6 15.5 5 16.3 4.3 17C3.5 17.7 2.5 18 1.6 18.7C0.7 19 -0 19.6 -1 20C-2 20.3 -3 20.6 -4 21C-5 21 -6 21 -7 21C-8 21 -9 21 -10 21C-11 20.7 -12 20.6 -13 20C-14 20 -15 19.5 -16 19C-17 18.3 -17.6 17.5 -18.3 16.7C-19 16 -19.5 15 -20 14C-20.6 13.3 -21 12.5 -21.5 11.5C-22 10.6 -22.4 9.7 -22.7 8.7C-23 7.7 -23.3 6.7 -23.5 5.6C-23.7 4.5 -24 3.4 -24 2.3C-24 1 -23.7 -0 -23 -1C-23 -2 -22 -3 -21.4 -4C-20.7 -5 -20 -5.5 -19 -6C-18 -7 -17 -7.3 -16 -7.7C-15 -8 -14 -8.4 -13 -8.7C-12 -9 -11 -9 -10 -9C-9 -9 -8 -9.3 -7 -9.3C-6 -9.4 -5 -9.3 -4 -9C-3 -9 -2.3 -9 -1.3 -8.4C-0.4 -8 0.5 -7.7 1.4 -7C2.3 -7 3.3 -6.3 4 -5.7C5 -5 6 -4.3 6.5 -3.5C7 -2.7 8 -2 8 -1C8.7 0 9 1 9.3 2.3C9.6 3.4 9.7 4.5 9.7 5.6Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r1" d="M-1,7C-1 7.4 -1 8 -1 8.4C-1 9 -1.3 9.5 -1.5 10C-1.7 10.5 -2 11 -2.3 11.4C-2.6 12 -3 12.3 -3.4 12.6C-4 13 -4.3 13 -4.7 13.4C-5 13.6 -5.7 14 -6 14C-6.7 14 -7 14 -7.6 14.3C-8 14.4 -8.6 14.4 -9 14.4C-9.6 14.4 -10 14.4 -10.6 14.4C-11 14.3 -11.6 14.3 -12 14C-12.6 14 -13 13.7 -13.5 13.4C-14 13 -14.3 13 -14.7 12.4C-15 12 -15.3 11.6 -15.6 11C-16 11 -16 10.3 -16.5 10C-16.7 9.4 -17 9 -17 8.4C-17 8 -17.4 7.4 -17.4 7C-17.5 6.3 -17.6 5.7 -17.5 5C-17.5 4.6 -17.3 4 -17 3.5C-17 3 -16.5 2.5 -16 2C-16 1.7 -15.3 1.4 -15 1C-14.5 0.7 -14 0.4 -13.5 0C-13 0 -12.5 -0 -12 -0.3C-11.6 -0.4 -11 -0.5 -10.6 -0.5C-10 -0.6 -9.6 -0.6 -9 -0.6C-8.6 -0.6 -8 -0.6 -7.7 -0.5C-7 -0.5 -6.7 -0.3 -6 -0C-5.7 -0 -5.3 0 -5 0.3C-4.3 0.6 -4 1 -3.4 1C-3 1.4 -2.6 2 -2 2C-2 2.6 -1.6 3 -1.4 3.6C-1 4 -1 4.7 -1 5C-1 5.7 -1 6.3 -1 7Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="crack" d="M-1.8,-5.1 L32.8,-46.8 L25.5,-51.9Z" fill="var(--crack)"></path></g></g></svg><span class="pname">Xavier Aldekoa</span></li><li class="person"><svg viewBox="-60 -60 120 120" aria-hidden="true"><g transform="translate(0 0)"><path d="M60,0C60 3.4 59.7 7 59 10.4C58.4 14 57.3 17 56 20.4C54.6 23.5 53 26.6 51 29.4C49 32.3 47 35 44.7 37.5C42.4 40 40 42.4 37.4 44.5C34.7 46.6 32 48.6 29 50C26 52 23 53 19.7 54C16.5 55 13 55.7 10 56C6.6 56.4 3.3 56.4 0 56C-3.3 56 -6.5 55.7 -9.7 55C-13 54.6 -16 54 -19.3 53C-22.4 52 -25.6 51 -28.6 49.5C-31.6 48 -34.5 46.4 -37.3 44.4C-40 42.4 -42.6 40 -45 37.7C-47 35 -49.3 32.4 -51 29.5C-53 26.6 -54.6 23.5 -56 20.3C-57 17 -58 14 -59 10.4C-59.4 7 -59.6 3.4 -59.5 0C-59.3 -3.4 -58.7 -7 -58 -10C-57 -13.5 -55.7 -16.7 -54.3 -20C-53 -23 -51 -25.7 -49.4 -28.5C-47.6 -31.3 -45.7 -34 -43.6 -36.6C-41.5 -39 -39.4 -41.7 -37 -44C-34.6 -46.4 -32 -48.7 -29 -50.6C-26.4 -52.4 -23.3 -54 -20 -55.3C-17 -56.5 -13.5 -57.3 -10 -58C-7 -58 -3.4 -58 -0 -58C3.4 -58 6.7 -57 10 -56.5C13 -55.7 16.4 -54.7 19.5 -53.5C22.5 -52.3 25.6 -51 28.4 -49C31 -47.5 34 -45.6 36.5 -43.5C39 -41.4 41.4 -39 43.5 -36.5C45.7 -34 47.7 -31.4 49.6 -28.6C51.4 -26 53 -23 54.6 -20C56 -17 57.3 -13.6 58 -10.3C59 -7 59.7 -3.4 60 0Z" transform="rotate(40)" fill="var(--acc)"/><g class="ph" transform="scale(.66)" style="color:var(--paper);--acc:var(--ink);--crack:var(--acc)"><path class="band" d="M51,0C51.4 3.3 51 7 50.4 10C49.7 13.3 48.4 16.5 47 19.4C45.3 22.3 43.3 25 41.3 27.6C39 30 37 32.4 34.6 34.6C32 36.7 29.6 38.6 27 40.3C24.3 42 21.5 43.6 18.5 45C15.6 46 12.5 47 9.5 47.5C6.4 48 3 48.5 0 48.6C-3 48.7 -6.4 48.5 -9.5 48C-12.7 47.5 -16 46.6 -19 45.4C-21.7 44 -24.6 42.6 -27 40.6C-29.7 38.7 -32 36.4 -34 34C-36 31.6 -37.7 29 -39.3 26C-41 23.6 -42 21 -43.5 18C-45 15 -46 12.4 -47 9.4C-48 6.3 -49 3 -49.3 0C-49.7 -3 -50 -6.6 -49.5 -10C-49 -13 -48.3 -16.4 -47 -19.5C-46 -22.6 -44.3 -25.6 -42.5 -28.4C-40.6 -31 -38.4 -34 -36 -36C-33.6 -38.3 -31 -40.4 -28 -42C-25.3 -43.7 -22 -45 -19 -46C-16 -47 -12.7 -47.4 -9.5 -47.7C-6.3 -48 -3 -48 -0 -47.5C3 -47.3 6 -47 9 -46C12 -45.4 15 -44.6 18 -43.4C21 -42.3 23.7 -41 26.3 -39.3C29 -37.7 31.3 -35.7 33.6 -33.6C36 -31.5 38 -29 40 -26.6C42 -24 43.6 -21.5 45 -18.7C46.7 -16 48 -13 49 -10C50 -6.7 51 -3.3 51 0ZM45,0.5C45 3.3 45 6.4 44.5 9C44 12 42.6 14.7 41 17C40 19.6 38 22 36 24C34 26 32 28 30 29.6C28 31.4 26 33 23.7 34.5C21.4 36 19 37 16.6 38C14 39 11.5 40 9 40.4C6.3 41 3.7 41.4 1 41.6C-1.7 41.7 -4.5 42 -7 41.5C-10 41 -12.6 40.5 -15 39.4C-17.6 38.3 -20 36.6 -22 35C-24 33 -26 31 -27.5 29C-29 27 -30.7 25 -32 22.7C-33.6 20.5 -35 18.3 -36.3 16C-37.5 13.6 -38.6 11 -39.4 8.5C-40 6 -40.6 3 -41 0.5C-41 -2 -41 -5 -41 -8C-40.5 -10.6 -40 -13.5 -39.3 -16C-38.4 -19 -37.3 -21.6 -35.7 -24C-34 -26.4 -32 -28.5 -30 -30.3C-27.6 -32 -25 -33.5 -22.6 -35C-20 -36 -17.5 -37 -15 -38C-12.3 -38.7 -9.7 -39.5 -7 -40C-4.4 -40.3 -1.6 -40.4 1 -40C3.6 -40 6.3 -39.4 9 -38.6C11.3 -38 13.7 -37 16 -36C18.4 -34.7 20.7 -33.6 23 -32.3C25 -31 27.4 -29.6 29.4 -28C31.5 -26.3 33.4 -24.3 35 -22.3C36.7 -20 38 -18 39.5 -15.5C41 -13 42 -10.5 43 -8C44 -5 44.6 -2.3 45 0.5Z" fill-rule="evenodd" fill="currentColor"></path><path class="r5" d="M38.3,2C38.5 4.3 38.5 7 38 9.5C37.3 12 36 14.4 34.7 16.6C33.4 19 31.7 21 30 22.6C28.4 24.4 26.7 26 25 27.7C23 29 21 30.6 19 32C17 33 15 34 12.7 35C10.6 36 8.4 37 6 37.7C4 38.3 1.3 39 -1 39C-3.5 39 -6 38.5 -8.3 38C-10.6 37.4 -13 36.5 -15 35.5C-17 34.6 -19.4 33.4 -21.3 32C-23 30.7 -25 29 -26.7 27.4C-28.3 25.7 -29.6 23.7 -31 21.7C-32 20 -33.3 17.7 -34.3 15.6C-35.3 13.4 -36.3 11 -37 9C-37.5 6.6 -38 4 -38 2C-38.3 -0.6 -38.3 -3 -38 -5.6C-38 -8 -37.7 -10.7 -37 -13C-36.3 -15.5 -35 -18 -34 -20C-32.4 -22 -30.5 -24 -28.6 -25.7C-26.7 -27.4 -24.4 -28.7 -22 -30C-20 -31 -17.6 -32 -15.3 -32.5C-13 -33 -10.5 -33.5 -8 -33.7C-5.7 -34 -3.4 -34 -1 -33.7C1.3 -33.6 3.6 -33.5 6 -33C8 -32.7 10.5 -32 12.6 -31C14.7 -30 16.7 -29 18.5 -27.5C20.4 -26 22 -24.7 24 -23C25.6 -21.6 27.3 -20 29 -18C30.4 -16.4 32 -14.5 33 -12.4C34.4 -10.3 35.5 -8 36.4 -5.7C37 -3.3 38 -0.7 38.3 2Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r4" d="M30,3C30.3 5 30 7.4 29.4 9.5C29 11.5 27.7 13.5 26.6 15.3C25.5 17 24 18.7 23 20.3C21.5 22 20 23.3 18.6 24.6C17 26 15.4 27 13.7 28C12 29 10.3 30 8.5 31C6.7 31.7 5 32.5 3 33C1 33.5 -1 34 -3 34C-5 34 -7 33.7 -9 33.3C-11 33 -13 32.3 -15 31.5C-16.7 30.7 -18.5 30 -20 28.7C-22 27.5 -23.3 26 -24.6 24.6C-26 23 -27 21.3 -28 19.6C-29 18 -30 16 -30.6 14.4C-31.4 12.6 -32 11 -32.7 9C-33 7 -33.6 5 -34 3C-34 1 -34.5 -1 -34.5 -3C-34.4 -5.4 -34.3 -7.6 -33.7 -9.7C-33 -12 -32 -14 -31 -15.6C-29.7 -17.4 -28 -19 -26 -20C-24.5 -21.5 -22.6 -22.5 -20.7 -23.4C-19 -24.3 -17 -25 -15 -25.4C-13 -26 -11 -26 -9 -26C-7 -26.3 -5 -26.4 -3 -26.3C-1 -26.3 1 -26 2.7 -26C4.6 -25.6 6.5 -25 8.3 -24.3C10 -23.5 11.7 -22.5 13.3 -21.5C15 -20.4 16.5 -19.3 18 -18C19.6 -17 21 -15.5 22.5 -14C24 -12.5 25 -11 26 -9C27 -7.3 28 -5.3 29 -3.3C29.5 -1.3 30 1 30 3Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r3" d="M20.5,4.3C20.5 6 20 7.6 19.7 9C19 11 18.4 12.3 17.7 13.7C17 15 16 16.4 15 17.7C14 19 13 20 12 21C10.7 22 9.3 23 8 24C6.7 24.6 5.3 25.3 4 26C2.5 26.4 1 27 -0.4 27.3C-2 27.7 -3.5 28 -5 28C-6.6 28 -8 28 -9.7 27.5C-11 27.3 -12.7 27 -14 26.4C-15.6 26 -17 25 -18.4 24C-19.6 23.3 -20.7 22 -21.7 21C-22.7 20 -23.5 18.4 -24 17C-25 16 -25.7 14.5 -26.3 13C-27 11.7 -27.5 10.3 -28 9C-28.5 7.4 -29 6 -29 4.3C-29.5 2.7 -30 1 -30 -0.7C-30 -2.3 -29.7 -4 -29 -5.7C-28.6 -7.3 -28 -9 -26.7 -10C-25.7 -11.5 -24.3 -12.6 -23 -13.6C-21.5 -14.6 -20 -15.3 -18.5 -16C-17 -16.6 -15.5 -17 -14 -17.4C-12.5 -17.7 -11 -18 -9.5 -18C-8 -18 -6.5 -18 -5 -18C-3.6 -18 -2 -18 -0.6 -18C1 -17.7 2.3 -17.3 3.7 -16.7C5 -16 6.4 -15.5 7.7 -15C9 -14 10.3 -13 11.5 -12.3C13 -11.4 14 -10.4 15 -9C16 -8 17 -6.7 18 -5C18.7 -4 19.4 -2.3 20 -0.7C20 1 20.6 2.6 20.5 4.3Z" fill="none" stroke="var(--acc)" stroke-width="2.0"></path><path class="r2" d="M9.7,5.6C9.7 6.7 9.4 8 9 9C9 10 8.4 11 8 12C7.5 13 7 14 6.4 14.6C6 15.5 5 16.3 4.3 17C3.5 17.7 2.5 18 1.6 18.7C0.7 19 -0 19.6 -1 20C-2 20.3 -3 20.6 -4 21C-5 21 -6 21 -7 21C-8 21 -9 21 -10 21C-11 20.7 -12 20.6 -13 20C-14 20 -15 19.5 -16 19C-17 18.3 -17.6 17.5 -18.3 16.7C-19 16 -19.5 15 -20 14C-20.6 13.3 -21 12.5 -21.5 11.5C-22 10.6 -22.4 9.7 -22.7 8.7C-23 7.7 -23.3 6.7 -23.5 5.6C-23.7 4.5 -24 3.4 -24 2.3C-24 1 -23.7 -0 -23 -1C-23 -2 -22 -3 -21.4 -4C-20.7 -5 -20 -5.5 -19 -6C-18 -7 -17 -7.3 -16 -7.7C-15 -8 -14 -8.4 -13 -8.7C-12 -9 -11 -9 -10 -9C-9 -9 -8 -9.3 -7 -9.3C-6 -9.4 -5 -9.3 -4 -9C-3 -9 -2.3 -9 -1.3 -8.4C-0.4 -8 0.5 -7.7 1.4 -7C2.3 -7 3.3 -6.3 4 -5.7C5 -5 6 -4.3 6.5 -3.5C7 -2.7 8 -2 8 -1C8.7 0 9 1 9.3 2.3C9.6 3.4 9.7 4.5 9.7 5.6Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="r1" d="M-1,7C-1 7.4 -1 8 -1 8.4C-1 9 -1.3 9.5 -1.5 10C-1.7 10.5 -2 11 -2.3 11.4C-2.6 12 -3 12.3 -3.4 12.6C-4 13 -4.3 13 -4.7 13.4C-5 13.6 -5.7 14 -6 14C-6.7 14 -7 14 -7.6 14.3C-8 14.4 -8.6 14.4 -9 14.4C-9.6 14.4 -10 14.4 -10.6 14.4C-11 14.3 -11.6 14.3 -12 14C-12.6 14 -13 13.7 -13.5 13.4C-14 13 -14.3 13 -14.7 12.4C-15 12 -15.3 11.6 -15.6 11C-16 11 -16 10.3 -16.5 10C-16.7 9.4 -17 9 -17 8.4C-17 8 -17.4 7.4 -17.4 7C-17.5 6.3 -17.6 5.7 -17.5 5C-17.5 4.6 -17.3 4 -17 3.5C-17 3 -16.5 2.5 -16 2C-16 1.7 -15.3 1.4 -15 1C-14.5 0.7 -14 0.4 -13.5 0C-13 0 -12.5 -0 -12 -0.3C-11.6 -0.4 -11 -0.5 -10.6 -0.5C-10 -0.6 -9.6 -0.6 -9 -0.6C-8.6 -0.6 -8 -0.6 -7.7 -0.5C-7 -0.5 -6.7 -0.3 -6 -0C-5.7 -0 -5.3 0 -5 0.3C-4.3 0.6 -4 1 -3.4 1C-3 1.4 -2.6 2 -2 2C-2 2.6 -1.6 3 -1.4 3.6C-1 4 -1 4.7 -1 5C-1 5.7 -1 6.3 -1 7Z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path class="crack" d="M-1.8,-5.1 L32.8,-46.8 L25.5,-51.9Z" fill="var(--crack)"></path></g></g></svg><span class="pname">Laura Aragó</span></li></ul>
+</section>
+
+<script>
+(function(){
+const D = [{"slug": "infancias-liquidas", "title": "Infancias líquidas", "place": "Delta del Ebro · Bangladesh · Chad", "platform": "[Plataforma]", "note": "Próximamente", "team": false, "syn": "Niños y niñas del delta del Ebro, Bangladesh y Chad conversan sobre territorios donde el cambio climático ya es una experiencia cotidiana: el mar que avanza, el agua que lo inunda todo o la que desaparece. Sin voz en off ni expertos, el film convierte sus palabras en un relato global sobre futuro y pertenencia.", "link": "", "href": "", "year": "[Año]", "imgs": ["img/proyectos/infancias-liquidas/1.jpg"]}, {"slug": "kaza", "title": "Kaza: el último refugio de elefantes", "place": "Sur de Angola", "platform": "CaixaForum+", "note": "", "team": false, "syn": "Xavier Aldekoa viaja al sur de Angola, la zona más intacta de la mayor reserva transfronteriza de fauna salvaje del mundo.", "link": "Ver en CaixaForum+", "href": "https://caixaforumplus.org/v/kaza-el-ultimo-refugio-de-elefantes", "year": "[Año]", "imgs": ["img/proyectos/kaza/1.jpg"]}, {"slug": "serigne", "title": "Serigne", "place": "Madrid · Senegal", "platform": "[Plataforma]", "note": "Nominado al Emmy a mejor documental, 2023", "team": true, "syn": "Un ex pescador senegalés se presenta a las elecciones de Madrid contra la xenofobia y la sobrepesca europea en África.", "link": "Ver documental", "href": "https://www.youtube.com/watch?v=cRAESliz6HM", "year": "[Año]", "imgs": ["img/proyectos/serigne/1.jpg"]}, {"slug": "disparos", "title": "Disparos", "place": "Ciudad de México", "platform": "[Plataforma]", "note": "Festival de Guadalajara · Ambulante", "team": true, "syn": "En un barrio peligroso de Ciudad de México, el fotógrafo Jair Cabrera retrata las consecuencias de la corrupción.", "link": "Ver documental", "href": "https://vimeo.com/314916530", "year": "[Año]", "imgs": ["img/proyectos/disparos/1.jpg"]}, {"slug": "os-sons-em-volta", "title": "Os sons em volta", "place": "Bahía, Brasil", "platform": "[Plataforma]", "note": "Próximamente", "team": true, "syn": "En Bahía, un viaje musical por la memoria y la resistencia con Ubiratan Marques y Baiana System.", "link": "Ver tráiler", "href": "https://vimeo.com/muzungutv/sons", "year": "[Año]", "imgs": ["img/proyectos/os-sons-em-volta/1.jpg"]}, {"slug": "blood-on-our-side", "title": "Blood on our side", "place": "Ciudad Juárez, México", "platform": "[Plataforma]", "note": "Ganador en Austin", "team": true, "syn": "En Ciudad Juárez, la perito Ana González recoge pruebas en medio de la violencia de los cárteles.", "link": "", "href": "", "year": "[Año]", "imgs": ["img/proyectos/blood-on-our-side/1.jpg"]}, {"slug": "gigantes-de-la-montana", "title": "Gigantes de la montaña", "place": "Sierra de Oaxaca, México", "platform": "Movistar Plus+ · Informe Robinson", "note": "", "team": true, "syn": "En la sierra de Oaxaca, un entrenador forma un equipo de baloncesto con niños triquis que juegan descalzos.", "link": "", "href": "", "year": "[Año]", "imgs": ["img/proyectos/gigantes-de-la-montana/1.jpg"]}, {"slug": "sangre-en-el-muro", "title": "Sangre en el muro", "place": "México · Estados Unidos", "platform": "National Geographic", "note": "", "team": true, "syn": "Cómo las políticas de EE. UU., las caravanas migrantes, el narcotráfico y la corrupción han moldeado México.", "link": "", "href": "", "year": "[Año]", "imgs": ["img/proyectos/sangre-en-el-muro/1.jpg"]}];
+const N = D.length;
+const $ = s => document.querySelector(s);
+const body = document.body;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const pad = n => (n < 9 ? '0' : '') + (n + 1);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const BR = '<i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i><b></b><b></b>';
+
+/* ---------- views ---------- */
+let view = 'home';
+function setView(v){ view = v; body.dataset.view = v; }
+setView('home');
+
+let focusMode = false;
+/* ---------- hero ---------- */
+/* Fotos del inicio: img/inicio/1.jpg ... 8.jpg. Las que no existan se saltan. */
+const HERO_MAX = 8;
+const clips = $('#clips');
+for (let i = 1; i <= HERO_MAX; i++){
+  clips.insertAdjacentHTML('beforeend', `<div class="clip${i === 1 ? ' on' : ''}" data-n="${i}"><img src="img/inicio/${i}.jpg" alt=""><span class="vf" aria-hidden="true">${BR}</span></div>`);
+}
+let clipEls = [...clips.children];
+/* ===== CENTRO DEL FOCO DE LAS FOTOS DEL INICIO =====
+   Número de foto (img/inicio/1.jpg = 1) y [horizontal, vertical] en % de la foto.
+   null = la web lo busca sola. Para encontrarlo: pulsa F en la web y pincha en la foto del inicio. */
+const FOCO_INICIO = {
+  1: [50, 45],
+  2: [47, 47],
+  3: [32, 46],
+  4: [53, 27],
+  5: [66, 47],
+  6: [53, 54],
+  7: null,
+  8: null,
+};
+function coverGeom(c, img){
+  const vw = c.clientWidth || innerWidth, vh = c.clientHeight || innerHeight, nw = img.naturalWidth, nh = img.naturalHeight;
+  const s = Math.max(vw / nw, vh / nh); return { vw, vh, nw, nh, s, ox: (nw * s - vw) / 2, oy: (nh * s - vh) / 2 };
+}
+function placeFocus(c, i){
+  const set = (x, y) => { c.style.setProperty('--fx', Math.min(85, Math.max(15, x)).toFixed(1) + '%'); c.style.setProperty('--fy', Math.min(80, Math.max(22, y)).toFixed(1) + '%'); };
+  const img = c.querySelector('img');
+  if (FOCO_INICIO[i] && img.naturalWidth){
+    const g = coverGeom(c, img);
+    return set((FOCO_INICIO[i][0] / 100 * g.nw * g.s - g.ox) / g.vw * 100, (FOCO_INICIO[i][1] / 100 * g.nh * g.s - g.oy) / g.vh * 100);
+  }
+  try {
+    // cover-crop geometry so the point maps to what is on screen
+    const vw = c.clientWidth || innerWidth, vh = c.clientHeight || innerHeight;
+    const W = 48, H = 27, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const cx = cv.getContext('2d', { willReadFrequently: true });
+    const s = Math.max(vw / img.naturalWidth, vh / img.naturalHeight);
+    const sw = vw / s, sh = vh / s, sx = (img.naturalWidth - sw) / 2, sy = (img.naturalHeight - sh) / 2;
+    cx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+    const d = cx.getImageData(0, 0, W, H).data, L = new Float32Array(W * H);
+    for (let k = 0; k < W * H; k++) L[k] = .3 * d[k*4] + .59 * d[k*4+1] + .11 * d[k*4+2];
+    let best = -1, bx = W / 2, by = H / 2;
+    for (let y = 2; y < H - 2; y++) for (let x = 2; x < W - 2; x++){
+      let e = 0;
+      for (let yy = -2; yy <= 2; yy++) for (let xx = -2; xx <= 2; xx++){ const q = (y + yy) * W + x + xx; e += Math.abs(L[q] - L[q + 1]) + Math.abs(L[q] - L[q + W]); }
+      const dx = (x - W / 2) / (W / 2), dy = (y - H / 2) / (H / 2);
+      e *= 1 - .45 * (dx * dx + dy * dy);   // prefer the middle a little
+      if (e > best){ best = e; bx = x; by = y; }
+    }
+    set((bx + .5) / W * 100, (by + .5) / H * 100);
+  } catch(err){ /* sin acceso a los píxeles: se queda en el centro */ }
+}
+clipEls.forEach((c, i) => { const im = c.querySelector('img'); const go = () => placeFocus(c, +c.dataset.n); if (im.complete && im.naturalWidth) go(); else im.addEventListener('load', go, { once: true }); });
+clipEls.forEach(c => c.querySelector('img').addEventListener('error', () => { c.remove(); clipEls = [...clips.children]; if (clipEls.length && !clipEls.some(x => x.classList.contains('on'))) showHero(0); }));
+let hi = 0;
+function showHero(n){
+  hi = n;
+  clipEls.forEach((c, i) => { c.classList.toggle('on', i === n); if (i === n && !reduce){ c.classList.remove('run'); void c.offsetWidth; c.classList.add('run'); } });
+}
+showHero(0);
+addEventListener('resize', () => clipEls.forEach(c => { if (c.querySelector('img').naturalWidth) placeFocus(c, +c.dataset.n); }));
+setInterval(() => { if (view === 'home' && !document.hidden && !focusMode && clipEls.length > 1) showHero((hi + 1) % clipEls.length); }, 3000);
+
+/* ---------- projects reel ---------- */
+const sec = $('#proyectos'), track = $('#track'), ticksEl = $('#ticks');
+D.forEach((p, k) => {
+  track.insertAdjacentHTML('beforeend', `<button class="card" type="button" data-open="${k}" aria-label="${esc(p.title)}: ver ficha"><span class="im"><img src="${p.imgs[0]}" alt="" loading="lazy"><span class="br" aria-hidden="true">${BR}</span></span><span class="tx"><span class="row1"><span class="num">${pad(k)}</span><span class="ttl">${esc(p.title)}</span>${p.team ? '<span class="tteam">Experiencia del equipo</span>' : ''}</span><span class="meta"><span>${esc(p.place)}</span></span></span></button>`);
+});
+const cards = [...track.children];
+$('#pcroll').innerHTML = D.map((_, k) => `<span>${pad(k)}</span>`).join(''); $('#pcof').textContent = '/ ' + pad(N - 1);
+let pcLast = -1;
+/* ===== CENTRO DEL FOCO DE CADA PROYECTO =====
+   [horizontal, vertical] en % de la foto: [50, 50] es el centro, [20, 40] más a la izquierda y arriba.
+   Para encontrarlo: pulsa F en la web y pincha en la foto. */
+const FOCO_PROYECTOS = {
+  'infancias-liquidas': [64, 25],
+  'kaza': [46, 48],
+  'serigne': [39, 44],
+  'disparos': [50, 50],
+  'os-sons-em-volta': [50, 43],
+  'blood-on-our-side': [47, 30],
+  'gigantes-de-la-montana': [50, 50],
+  'sangre-en-el-muro': [50, 50],
+};
+const clampF = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+function applyFocus(k){
+  const f = FOCO_PROYECTOS[D[k].slug] || [50, 50], im = cards[k].querySelector('.im');
+  im.style.setProperty('--fx', clampF(f[0], 18, 82) + '%'); im.style.setProperty('--fy', clampF(f[1], 20, 80) + '%');
+}
+cards.forEach((_, k) => applyFocus(k));
+function enableFocusMode(){
+  if (focusMode) return; focusMode = true;
+  const tip = document.createElement('div'); tip.className = 'tip'; tip.textContent = 'Modo enfoque: pincha en la foto del inicio (cambia de foto con ← →) o en las fotos de Proyectos'; document.body.appendChild(tip);
+  $('#inicio').addEventListener('click', e => {
+    if (e.target.closest('a,button')) return;
+    const c = clips.querySelector('.clip.on'); if (!c) return;
+    const img = c.querySelector('img'), g = coverGeom(c, img), r = c.getBoundingClientRect();
+    const sx = e.clientX - r.left, sy = e.clientY - r.top;
+    const x = Math.round((sx + g.ox) / (g.nw * g.s) * 100), y = Math.round((sy + g.oy) / (g.nh * g.s) * 100);
+    FOCO_INICIO[+c.dataset.n] = [x, y]; placeFocus(c, +c.dataset.n);
+    tip.textContent = `${c.dataset.n}: [${x}, ${y}],`;
+  });
+  addEventListener('keydown', e => {
+    if (view !== 'home' || clipEls.length < 2) return;
+    if (e.key === 'ArrowRight') showHero((hi + 1) % clipEls.length);
+    if (e.key === 'ArrowLeft') showHero((hi - 1 + clipEls.length) % clipEls.length);
+  });
+  track.addEventListener('click', e => {
+    const im = e.target.closest('.im'); if (!im) return;
+    e.preventDefault(); e.stopPropagation();
+    const r = im.getBoundingClientRect(), k = cards.indexOf(im.closest('.card'));
+    const x = Math.round((e.clientX - r.left) / r.width * 100), y = Math.round((e.clientY - r.top) / r.height * 100);
+    FOCO_PROYECTOS[D[k].slug] = [x, y]; applyFocus(k);
+    tip.textContent = `'${D[k].slug}': [${x}, ${y}],`;
+  }, true);
+}
+if (location.hash === '#enfoque') enableFocusMode();
+addEventListener('hashchange', () => { if (location.hash === '#enfoque') enableFocusMode(); });
+addEventListener('keydown', e => { if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey && !e.altKey) enableFocusMode(); });
+const PADT = 12, PER = 6, TW = 9, NT = PADT * 2 + PER * (N - 1) + 1;
+for (let t = 0; t < NT; t++){
+  const j = t - PADT, mj = j >= 0 && j <= PER * (N - 1) && j % PER === 0;
+  ticksEl.insertAdjacentHTML('beforeend', `<div class="tk${mj ? ' mj' : ''}"><i></i>${mj ? `<span>${pad(j / PER)}</span>` : ''}</div>`);
+}
+const majors = [...ticksEl.querySelectorAll('.tk.mj')];
+let step = 400, cw = 680, gap = 28, scaleW = 520;
+function layout(){
+  const vh = innerHeight;
+  step = Math.round(Math.max(320, vh * 0.55));
+  sec.style.height = (Math.max(vh, 560) + (N - 1) * step) + 'px';
+  cw = Math.min(760, Math.round(innerWidth * (innerWidth < 760 ? 0.82 : 0.53)));
+  gap = innerWidth < 760 ? 18 : 28;
+  track.style.setProperty('--cw', cw + 'px');
+  scaleW = $('.scale').offsetWidth || 520;
+  reel();
+}
+let pos = 0;
+function reel(){
+  if (view !== 'home') return;
+  const r = sec.getBoundingClientRect();
+  const p = Math.min(1, Math.max(0, -r.top / ((N - 1) * step)));
+  pos = p * (N - 1);
+  track.style.transform = `translate3d(${(-pos * (cw + gap)).toFixed(1)}px,0,0)`;
+  cards.forEach((c, k) => c.style.setProperty('--f', Math.max(0, 1 - Math.abs(pos - k) * 1.4).toFixed(3)));
+  ticksEl.style.transform = `translate3d(${(scaleW / 2 - (PADT + PER * pos) * TW).toFixed(1)}px,0,0)`;
+  majors.forEach((m, k) => m.style.setProperty('--f', Math.max(0, 1 - Math.abs(pos - k) * 2).toFixed(3)));
+  const pk = Math.round(pos); if (pk !== pcLast){ pcLast = pk; $('#pcroll').style.transform = `translateY(${-pk}em)`; }
+  // header colour over the paper block
+  const c = $('#contacto').getBoundingClientRect();
+  $('#top').classList.toggle('light', c.top < 60 && c.bottom > 60);
+  $('#top').classList.toggle('end', c.top < innerHeight * 0.75);
+}
+let snapT = null, snapping = false;
+function snap(){
+  if (view !== 'home' || snapping) return;
+  const top = sec.offsetTop, y = scrollY, end = top + (N - 1) * step;
+  if (y <= top + 4 || y >= end - 4) return;
+  const k = Math.round((y - top) / step), target = top + k * step;
+  if (Math.abs(target - y) < 3) return;
+  snapping = true;
+  scrollTo({ top: target, behavior: reduce ? 'auto' : 'smooth' });
+  setTimeout(() => { snapping = false; }, 600);
+}
+addEventListener('scroll', () => { reel(); clearTimeout(snapT); snapT = setTimeout(snap, 140); }, { passive: true });
+addEventListener('resize', layout);
+
+/* contact rings */
+const contact = $('#contacto');
+if ('IntersectionObserver' in window && !reduce){
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ contact.classList.add('play'); io.disconnect(); } }), { threshold: .35 });
+  io.observe(contact);
+}
+
+/* ---------- ficha ---------- */
+let fk = 0, fs = 0;
+const fimg = $('#fimg'), thumbs = $('#thumbs'), dots = $('#dots');
+function renderFicha(){
+  const p = D[fk];
+  fimg.querySelectorAll('img.main').forEach(i => i.remove());
+  p.imgs.forEach((src, i) => fimg.insertAdjacentHTML('afterbegin', `<img class="main${i === fs ? ' on' : ''}" data-i="${i}" src="${src}" alt="Fotograma ${i + 1} de ${esc(p.title)}">`));
+  thumbs.innerHTML = p.imgs.map((src, i) => `<button type="button" class="th${i === fs ? ' on' : ''}" data-shot="${i}" aria-label="Fotograma ${i + 1}" aria-pressed="${i === fs}"><img src="${src}" alt=""><i style="top:4px;left:4px;border-top-width:1.5px;border-left-width:1.5px"></i><i style="top:4px;right:4px;border-top-width:1.5px;border-right-width:1.5px"></i><i style="bottom:4px;left:4px;border-bottom-width:1.5px;border-left-width:1.5px"></i><i style="bottom:4px;right:4px;border-bottom-width:1.5px;border-right-width:1.5px"></i></button>`).join('');
+  dots.innerHTML = p.imgs.map((_, i) => `<button type="button" class="${i === fs ? 'on' : ''}" data-shot="${i}" aria-label="Fotograma ${i + 1}" aria-pressed="${i === fs}"><span></span></button>`).join('');
+  thumbs.hidden = dots.hidden = p.imgs.length < 2;
+  fimg.querySelectorAll('img.main').forEach(im => im.addEventListener('error', () => {
+    const i = +im.dataset.i; im.remove();
+    fimg.querySelectorAll(`[data-shot="${i}"]`).forEach(b => b.remove());
+    const left = [...fimg.querySelectorAll('img.main')];
+    thumbs.hidden = dots.hidden = left.length < 2;
+    if (left.length && !left.some(x => x.classList.contains('on'))) shot(+left[left.length - 1].dataset.i);
+  }, { once: true }));
+  $('#fn').textContent = pad(fk);
+  $('#fof').textContent = '/ ' + pad(N - 1);
+  $('#fteam').hidden = !p.team;
+  $('#ft').textContent = p.title;
+  $('#fnote').hidden = !p.note; $('#fnote span:last-child').textContent = p.note;
+  $('#fyear').textContent = p.year; $('#fplace').textContent = p.place; $('#fplat').textContent = p.platform;
+  $('#fsyn').textContent = p.syn;
+  const l = $('#flink'); l.hidden = !p.href; l.href = p.href || '#'; l.firstElementChild.textContent = p.link;
+  $('#fprev .t').textContent = D[(fk + N - 1) % N].title;
+  $('#fnext .t').textContent = D[(fk + 1) % N].title;
+  [...$('#ftext').children].forEach(el => { if (!el.classList.contains('pn')){ el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; } });
+}
+function shot(i){
+  fs = i;
+  fimg.querySelectorAll('img.main').forEach(im => im.classList.toggle('on', +im.dataset.i === i));
+  thumbs.querySelectorAll('.th').forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-pressed', j === i); });
+  dots.querySelectorAll('button').forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-pressed', j === i); });
+}
+function openFicha(k){
+  fk = (k + N) % N; fs = 0;
+  setView('ficha'); renderFicha(); scrollTo(0, 0);
+  $('#top').classList.remove('light', 'end');
+  try { history.replaceState(null, '', '#' + D[fk].slug); } catch(e){}
+  $('#ft').focus({ preventScroll: true });
+}
+$('#ft').tabIndex = -1;
+function goHome(target){
+  setView('home'); layout();
+  try { history.replaceState(null, '', target ? '#' + target : location.pathname + location.search); } catch(e){}
+  if (target === 'proyectos-k'){ scrollTo(0, sec.offsetTop + fk * step); reel(); return; }
+  const el = target ? document.getElementById(target) : null;
+  scrollTo(0, el ? el.offsetTop : 0); reel();
+}
+fimg.addEventListener('click', e => { const b = e.target.closest('[data-shot]'); if (b) shot(+b.dataset.shot); });
+$('#fprev').addEventListener('click', () => openFicha(fk - 1));
+$('#fnext').addEventListener('click', () => openFicha(fk + 1));
+addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('#menu').hidden) closeMenu();
+  else if (view === 'ficha' && $('#menu').hidden){ if (e.key === 'ArrowRight') openFicha(fk + 1); if (e.key === 'ArrowLeft') openFicha(fk - 1); }
+});
+
+/* ---------- menu ---------- */
+const menu = $('#menu');
+function openMenu(){ menu.hidden = false; menu.querySelector('nav a').focus(); }
+function closeMenu(){ menu.hidden = true; $('#menubtn').focus(); }
+$('#menubtn').addEventListener('click', openMenu);
+menu.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeMenu));
+
+/* ---------- navigation clicks ---------- */
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-open]');
+  if (o){ e.preventDefault(); openFicha(+o.dataset.open); return; }
+  const g = e.target.closest('[data-go]');
+  if (!g) return;
+  e.preventDefault();
+  if (!menu.hidden) menu.hidden = true;
+  const where = g.dataset.go;
+  if (where === 'equipo'){ setView('equipo'); scrollTo(0, 0); $('#top').classList.remove('light', 'end'); try { history.replaceState(null, '', '#equipo'); } catch(err){} }
+  else if (where === 'back') goHome('proyectos-k');
+  else if (where === 'home') goHome(null);
+  else goHome(where);
+});
+
+/* ---------- cursor ---------- */
+const overText = el => !!el && el.nodeType === 1 && !el.closest('.im, img, .clip, .fimg, svg, .mark') && [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+if (matchMedia('(hover: hover) and (pointer: fine)').matches){
+  const cur = $('#cur'); document.documentElement.classList.add('cc');
+  addEventListener('mousemove', e => { cur.style.transform = `translate3d(${e.clientX}px,${e.clientY}px,0)`; cur.classList.add('on'); cur.classList.toggle('hot', overText(e.target)); }, { passive: true });
+  document.addEventListener('mouseleave', () => cur.classList.remove('on'));
+}
+
+/* ---------- start ---------- */
+layout();
+const h = (location.hash || '').slice(1);
+const fromSlug = D.findIndex(p => p.slug === h);
+if (fromSlug >= 0) openFicha(fromSlug);
+else if (h === 'equipo'){ setView('equipo'); }
+else if (h === 'proyectos' || h === 'contacto'){ requestAnimationFrame(() => goHome(h)); }
+})();
+</script>
+
+</body>
+</html>
